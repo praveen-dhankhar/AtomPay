@@ -14,7 +14,7 @@ const sendOTPEmail = async (email, otp) => {
         <h2 style="color:#FF5722">⚡ AtomPay</h2>
         <p>Your Login OTP:</p>
         <h1 style="color:#FF5722;letter-spacing:8px">${otp}</h1>
-        <p>Expires in 10 minutes.</p>
+        <p>Expires in 2 minutes.</p>
       </div>
     `
   });
