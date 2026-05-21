@@ -103,7 +103,7 @@ export default function Login({ onLogin, goToSignup }) {
                 <label>Email</label>
                 <input
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="akshay@example.com"
                   value={form.email}
                   onChange={e => setForm({
                       ...form, email: e.target.value
