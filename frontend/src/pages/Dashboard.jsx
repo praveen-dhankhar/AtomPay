@@ -55,16 +55,16 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
         <div className="qr-modal-overlay" onClick={() => setShowQR(false)}>
           <div className="qr-modal" onClick={e => e.stopPropagation()}>
             <div className="qr-modal-header">
-              <h3>Mera QR Code</h3>
+              <h3>My QR</h3>
               <button className="qr-close-btn" onClick={() => setShowQR(false)}>✕</button>
             </div>
-            <p className="qr-modal-hint">Yeh QR scan karke koi bhi tumhe paisa bhej sakta hai</p>
+            <p className="qr-modal-hint">Anyone can send money to you using this QR Code</p>
             {wallet?.qrCode ? (
               <div className="qr-image-wrap">
                 <img src={wallet.qrCode} alt="My QR Code" className="qr-image" />
               </div>
             ) : (
-              <div className="qr-empty">QR generate ho raha hai...</div>
+              <div className="qr-empty">QR generatation in process...</div>
             )}
             <p className="qr-username">@{user?.username}</p>
           </div>
@@ -74,7 +74,7 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
       {/* Header */}
       <div className="dash-header">
         <div>
-          <p className="dash-greeting">Namaste 👋</p>
+          <p className="dash-greeting">Hello 👋</p>
           <h2 className="dash-name">{user?.username}</h2>
         </div>
         <div className="dash-avatar" onClick={() => navigate("settings")}>
@@ -148,7 +148,7 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
         {recentTxns.length === 0 ? (
           <div className="empty-txn">
             <p>Abhi tak koi transaction nahi</p>
-            <button onClick={() => navigate("transfer")}>Pehla payment bhejo ⚡</button>
+            <button onClick={() => navigate("transfer")}>Send First Payment⚡</button>
           </div>
         ) : (
           recentTxns.map((tx, i) => (
