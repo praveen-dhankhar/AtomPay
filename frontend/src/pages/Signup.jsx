@@ -60,15 +60,15 @@ export default function Signup({ onLogin, goToLogin }) {
           <span className="logo-atom">⚡</span>
           <span className="logo-text">AtomPay</span>
         </div>
-        <p className="auth-subtitle">₹500,000 signup bonus ke saath shuru karo</p>
+        <p className="auth-subtitle">You will get ₹500,000 signup bonus </p>
 
         <div className="auth-form">
           {!otpSent ? (
             <>
               {[
-                { key: "name", label: "Full Name", placeholder: "Akshy Dhankhar", type: "text" },
-                { key: "email", label: "Email", placeholder: "you@example.com", type: "email" },
-                { key: "username", label: "Username", placeholder: "akshy123", type: "text" },
+                { key: "name", label: "Full Name", placeholder: "Akshay Dhankhar", type: "text" },
+                { key: "email", label: "Email", placeholder: "akshay@example.com", type: "email" },
+                { key: "username", label: "Username", placeholder: "akshay123", type: "text" },
                 { key: "password", label: "Password", placeholder: "Min 8 characters", type: "password" },
                 { key: "pin", label: "UPI PIN (6 digits)", placeholder: "••••••", type: "password" },
               ].map(({ key, label, placeholder, type }) => (
@@ -112,8 +112,8 @@ export default function Signup({ onLogin, goToLogin }) {
           )}
 
           <p className="auth-switch">
-            Already account hai?{" "}
-            <span onClick={goToLogin}>Login karo</span>
+            Already account?{" "}
+            <span onClick={goToLogin}>Login</span>
           </p>
         </div>
       </div>
