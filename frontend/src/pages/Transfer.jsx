@@ -57,7 +57,7 @@ export default function Transfer({ token, navigate, initialData }) {
         () => {} // scan fail — ignore
       );
     } catch (err) {
-      setError("Camera access nahi mila — manually username daalo");
+      setError("No Camera Access");
       setShowScanner(false);
     }
   };
@@ -75,14 +75,14 @@ export default function Transfer({ token, navigate, initialData }) {
   const handleNext = () => {
     setError("");
     if (!form.receiverUsername) return setError("Username daalo");
-    if (!form.amount || Number(form.amount) < 1) return setError("Valid amount daalo");
-    if (Number(form.amount) > 100000) return setError("Max ₹1,00,000 ek baar mein");
+    if (!form.amount || Number(form.amount) < 1) return setError("Please enter valid amount");
+    if (Number(form.amount) > 100000) return setError("You can send at max ₹1,00,000 in one transaction");
     setStep(2);
   };
 
   const handleTransfer = async () => {
     setError("");
-    if (!form.pin || form.pin.length !== 6) return setError("6-digit PIN daalo");
+    if (!form.pin || form.pin.length !== 6) return setError("Please enter 6-digit PIN");
     setLoading(true);
     try {
       await api("/transaction/transfer", {
@@ -139,7 +139,7 @@ export default function Transfer({ token, navigate, initialData }) {
               <h3>QR Scan Karo</h3>
               <button className="scanner-close" onClick={() => setShowScanner(false)}>✕</button>
             </div>
-            <p className="scanner-hint">Receiver ka QR code camera ke saamne rakho</p>
+            <p className="scanner-hint">Scan receiver's QR code</p>
             <div id="qr-reader" ref={scannerRef} className="qr-reader-box" />
           </div>
         </div>
@@ -148,7 +148,7 @@ export default function Transfer({ token, navigate, initialData }) {
       {step === 1 && (
         <div className="transfer-form">
           <div className="input-group">
-            <label>Kisko bhejne hai?</label>
+            <label>To whom?</label>
             <div className="username-input-row">
               <input
                 placeholder="@username"
@@ -226,7 +226,7 @@ export default function Transfer({ token, navigate, initialData }) {
           </div>
 
           <div className="input-group" style={{ marginTop: 24 }}>
-            <label>UPI PIN confirm karo</label>
+            <label>Confirm UPI PIN</label>
             <input
               type="password"
               placeholder="••••••"
@@ -249,13 +249,13 @@ export default function Transfer({ token, navigate, initialData }) {
           <div className="success-circle">
             <span>✓</span>
           </div>
-          <h2>Paisa Bhej Diya!</h2>
+          <h2>Sent!</h2>
           <p>{formatAmount(Number(form.amount))} successfully sent to @{form.receiverUsername}</p>
           <button className="transfer-btn" onClick={handleNewTransfer}>
-            Ek aur bhejo
+            Send Again
           </button>
           <button className="transfer-btn-outline" onClick={() => navigate("dashboard")}>
-            Dashboard pe jao
+            Dashboard
           </button>
         </div>
       )}
