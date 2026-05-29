@@ -4,7 +4,6 @@ const cors = require("cors");
 const authRouter = require("./routes/auth.routes");
 const transactionRouter = require("./routes/transection.routes");
 const walletRouter = require("./routes/wallet.routes");
-const aiRouter = require("./routes/ai.routes");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -50,6 +49,5 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/wallet", walletRouter);
 app.use("/api/transaction", transactionRouter);
-app.use("/api/ai", aiRouter);
 
 module.exports = app;

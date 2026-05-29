@@ -3,7 +3,7 @@ import { api } from "../api";
 import BottomNav from "../components/BottomNav";
 import "../styles/dashboard.css";
 
-export default function Dashboard({ token, user, navigate, onLogout, onOpenAI }) {
+export default function Dashboard({ token, user, navigate, onLogout }) {
   const [wallet, setWallet] = useState(null);
   const [allTxns, setAllTxns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -135,9 +135,9 @@ export default function Dashboard({ token, user, navigate, onLogout, onOpenAI })
           <span className="action-icon">⬛</span>
           <span>My QR</span>
         </button>
-        <button className="action-btn" onClick={onOpenAI}>
-          <span className="action-icon" style={{ background: "linear-gradient(135deg, #FF5722, #FFB74D)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800 }}>✦</span>
-          <span>Atom AI</span>
+        <button className="action-btn" onClick={() => navigate("settings")}>
+          <span className="action-icon">⚙</span>
+          <span>Settings</span>
         </button>
       </div>
 

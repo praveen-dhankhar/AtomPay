@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { id: "settings", icon: "⚙", label: "Settings" },
 ];
 
-export default function SideNav({ active, navigate, user, onLogout, onToggleAI, aiOpen }) {
+export default function SideNav({ active, navigate, user, onLogout }) {
   return (
     <aside className="sidenav">
       <div className="sidenav-top">
@@ -36,15 +36,6 @@ export default function SideNav({ active, navigate, user, onLogout, onToggleAI, 
               <span className="sidenav-link-label">{label}</span>
             </button>
           ))}
-          <button
-            className={`sidenav-link ai-link ${aiOpen ? "active" : ""}`}
-            onClick={onToggleAI}
-          >
-            <span className="sidenav-link-indicator" />
-            <span className="sidenav-link-icon ai-icon">✦</span>
-            <span className="sidenav-link-label">Atom AI</span>
-            <span className="ai-badge">NEW</span>
-          </button>
         </nav>
       </div>
 

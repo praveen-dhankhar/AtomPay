@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage --forceExit --detectOpenHandles",
-    "test:watch": "jest --watch --forceExit --detectOpenHandles",
     "start": "node index.js"
   },
   "keywords": [],
@@ -16,7 +14,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^4.18.2",
-    "groq-sdk": "^1.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
     "nodemailer": "^8.0.4",
@@ -26,10 +23,5 @@
     "sib-api-v3-sdk": "^8.5.0",
     "speakeasy": "^2.0.0",
     "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "jest": "^29.7.0",
-    "mongodb-memory-server": "^10.4.0",
-    "supertest": "^7.1.0"
   }
 }

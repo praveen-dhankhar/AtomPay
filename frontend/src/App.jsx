@@ -8,15 +8,12 @@ import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import Maintenance from "./pages/Maintenance";
 import SideNav from "./components/SideNav";
-import AtomAI from "./components/AtomAI";
-import "./styles/atomai.css";
 
 export default function App() {
   const [page, setPage] = useState("login");
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "null"));
   const [transferData, setTransferData] = useState(null);
-  const [aiOpen, setAiOpen] = useState(false);
   const maintenance = import.meta.env.VITE_MAINTENANCE_MODE === "true";
 
   useEffect(() => {
@@ -72,7 +69,6 @@ export default function App() {
     setToken(null);
     setUser(null);
     setTransferData(null);
-    setAiOpen(false);
     setPage("login");
   };
 
@@ -99,26 +95,16 @@ export default function App() {
         navigate={navigate}
         user={user}
         onLogout={handleLogout}
-        onToggleAI={() => setAiOpen(!aiOpen)}
-        aiOpen={aiOpen}
       />
 
       {/* Main Content */}
       <main className="app-main">
-        {page === "dashboard" && <Dashboard token={token} user={user} navigate={navigate} onLogout={handleLogout} onOpenAI={() => setAiOpen(true)} />}
+        {page === "dashboard" && <Dashboard token={token} user={user} navigate={navigate} onLogout={handleLogout} />}
         {page === "transfer" && <Transfer token={token} navigate={navigate} initialData={transferData} />}
         {page === "transactions" && <Transactions token={token} navigate={navigate} />}
         {page === "settings" && <Settings token={token} user={user} navigate={navigate} onLogout={handleLogout} />}
       </main>
 
-      {/* AI Panel */}
-      <AtomAI token={token} isOpen={aiOpen} onClose={() => setAiOpen(false)} />
-
-      {/* Mobile AI FAB */}
-      <button className="ai-fab" onClick={() => setAiOpen(true)} aria-label="Open Atom AI">
-        <span>✦</span>
-        <span className="ai-fab-ring" />
-      </button>
     </div>
   );
 }

@@ -1,5 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+/* 
+=========================================
+THEME RESTORATION BLOCK
+=========================================
+To revert back to the original Orange & Black theme:
+1. Comment out the "Midnight Indigo & Violet Aura" block below.
+2. Uncomment the "Original Orange & Black" block.
+=========================================
+
+--- ORIGINAL ORANGE & BLACK THEME ---
 :root {
   --orange: #FF5722;
   --orange-light: #FF7043;
@@ -20,6 +30,29 @@
   --radius-sm: 10px;
   --shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
+*/
+
+/* --- MIDNIGHT INDIGO & VIOLET AURA THEME --- */
+:root {
+  --orange: #6366F1;             /* Electric Indigo */
+  --orange-light: #8B5CF6;       /* Soft Violet */
+  --orange-dim: rgba(99, 102, 241, 0.12);
+  --orange-glow: rgba(99, 102, 241, 0.30);
+  --bg: #06070D;                 /* Obsidian Navy */
+  --bg2: #0B0C16;                /* Dark Slate Navy */
+  --bg3: #111322;                /* Card BG */
+  --bg4: #1C1F37;                /* Borders & Highlights */
+  --text: #F3F4F6;               /* Bright Off-White */
+  --text2: #9CA3AF;              /* Muted Silver */
+  --text3: #4B5563;              /* Placeholders */
+  --green: #10B981;              /* Emerald Green */
+  --red: #EF4444;                /* Coral Red */
+  --green-dim: rgba(16, 185, 129, 0.12);
+  --red-dim: rgba(239, 68, 68, 0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
 
 * {
   margin: 0;
@@ -30,7 +63,7 @@
 
 body {
   font-family: 'DM Sans', sans-serif;
-  background: #000;
+  background: var(--bg);
   color: var(--text);
   overflow-x: hidden;
 }
