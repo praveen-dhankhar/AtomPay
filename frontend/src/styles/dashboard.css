@@ -47,8 +47,8 @@
 /* Balance Card */
 .balance-card {
   margin: 0 16px;
-  background: linear-gradient(135deg, #1a0f0a 0%, #1f1208 50%, #170d05 100%);
-  border: 1px solid rgba(255,87,34,0.25);
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-light) 100%);
+  border: 1px solid var(--orange-glow);
   border-radius: 20px;
   padding: 24px;
   position: relative;
@@ -59,7 +59,7 @@
   position: absolute;
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(255,87,34,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--orange-glow) 0%, transparent 70%);
   top: -60px;
   right: -40px;
   pointer-events: none;

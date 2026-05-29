@@ -235,7 +235,7 @@
   transition: all 0.2s;
 }
 
-.scan-btn:hover { background: rgba(255,87,34,0.25); }
+.scan-btn:hover { background: var(--orange-glow); }
 
 .scanner-overlay {
   position: fixed;
