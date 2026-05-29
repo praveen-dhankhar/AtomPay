@@ -30,9 +30,10 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
 
   const recentTxns = allTxns.slice(0, 5);
 
-  // Daily limit uses ALL transactions, not just recent 5
+  // Daily limit uses transactions from the past 24 hours
+  const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
   const dailyDebitTotal = allTxns
-    .filter(t => t.type === "debit" && t.status === "success")
+    .filter(t => t.type === "debit" && t.status === "success" && new Date(t.createdAt).getTime() > oneDayAgo)
     .reduce((a, b) => a + b.amount, 0);
 
   const formatAmount = (n) =>

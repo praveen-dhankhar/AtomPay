@@ -16,10 +16,10 @@
     height: 100vh;
     position: sticky;
     top: 0;
-    background: var(--bg2);
+    background: rgba(15, 15, 15, 0.85);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border-right: 1px solid var(--bg4);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
     padding: 24px 16px;
     z-index: 60;
   }
@@ -49,8 +49,8 @@
     gap: 12px;
     padding: 14px 12px;
     margin-bottom: 8px;
-    background: var(--bg);
-    border: 1px solid var(--bg4);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 14px;
   }
 
@@ -118,12 +118,12 @@
   }
 
   .sidenav-link:hover {
-    background: var(--bg);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text);
   }
 
   .sidenav-link.active {
-    background: var(--orange-dim);
+    background: rgba(255, 87, 34, 0.08);
     color: var(--orange);
   }
 
@@ -176,7 +176,7 @@
 
   /* Bottom section */
   .sidenav-bottom {
-    border-top: 1px solid var(--bg4);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 12px;
   }
 
@@ -186,6 +186,6 @@
 
   .logout-link:hover {
     color: var(--red) !important;
-    background: var(--red-dim) !important;
+    background: rgba(255, 23, 68, 0.06) !important;
   }
 }
