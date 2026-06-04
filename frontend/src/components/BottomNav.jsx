@@ -3,6 +3,7 @@ import "../styles/bottomnav.css";
 const NAV_ITEMS = [
   { id: "dashboard", icon: "⌂", label: "Home" },
   { id: "transfer", icon: "↑", label: "Send" },
+  { id: "ai", icon: "✦", label: "AI" },
   { id: "transactions", icon: "☰", label: "History" },
   { id: "settings", icon: "⚙", label: "Settings" },
 ];

@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Transfer from "./pages/Transfer";
 import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
+import AiChat from "./pages/AiChat";
 import Maintenance from "./pages/Maintenance";
 import SideNav from "./components/SideNav";
 
@@ -103,6 +104,7 @@ export default function App() {
         {page === "transfer" && <Transfer token={token} navigate={navigate} initialData={transferData} />}
         {page === "transactions" && <Transactions token={token} navigate={navigate} />}
         {page === "settings" && <Settings token={token} user={user} navigate={navigate} onLogout={handleLogout} />}
+        {page === "ai" && <AiChat token={token} user={user} />}
       </main>
 
     </div>

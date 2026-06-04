@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { id: "dashboard", icon: "⌂", label: "Dashboard" },
   { id: "transfer", icon: "↑", label: "Send Money" },
   { id: "transactions", icon: "☰", label: "Transactions" },
+  { id: "ai", icon: "✦", label: "AI Agent" },
   { id: "settings", icon: "⚙", label: "Settings" },
 ];
 
