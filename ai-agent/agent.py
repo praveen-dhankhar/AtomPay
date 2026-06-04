@@ -117,6 +117,5 @@ async def chat_with_agent(user_id: str, message: str, chat_history: list = None)
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower() or "rate_limit" in error_msg.lower():
             return ("I'm currently rate-limited by the AI provider. This usually resets in about a minute. "
                     "Please wait a moment and try again!\n\n"
-                    "**Tip:** If this keeps happening, check your Groq usage at "
-                    "[Groq Console](https://console.groq.com).")
+                    )
         raise
