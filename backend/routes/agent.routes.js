@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middlewares/auth.middlewares");
 
-const AGENT_URL = process.env.AGENT_URL || "http://localhost:8000";
+const AGENT_URL = (process.env.AGENT_URL || "http://localhost:8000").replace(/\/$/, "");
 
 /**
  * POST /api/agent/chat
