@@ -1,0 +1,9 @@
+fastapi==0.115.12
+uvicorn==0.34.3
+motor==3.7.1
+pymongo==4.12.1
+langchain>=0.3.25
+langchain-groq>=0.3.0
+langchain-core>=0.3.58
+python-dotenv==1.1.0
+pydantic>=2.11.0
