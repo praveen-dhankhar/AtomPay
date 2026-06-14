@@ -1,14 +1,25 @@
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middlewares/auth.middlewares");
+const { rateLimiter } = require("../middlewares/rateLimiter");
 
 const AGENT_URL = (process.env.AGENT_URL || "http://localhost:8000").replace(/\/$/, "");
+
+// Per-user limit on the LLM-backed chat endpoint to prevent API billing exhaustion.
+// Keyed by authenticated user id, so it must run after authMiddleware.
+const aiChatLimiter = rateLimiter({
+    keyPrefix: "rl:ai-chat",
+    windowMs: 60 * 1000,
+    max: 10,
+    identifier: (req) => req.user.id,
+    message: "You're sending messages too fast. Please wait a minute before chatting again.",
+});
 
 /**
  * POST /api/agent/chat
  * Proxies chat messages to the Python AI Agent, injecting the authenticated userId.
  */
-router.post("/chat", authMiddleware, async (req, res) => {
+router.post("/chat", authMiddleware, aiChatLimiter, async (req, res) => {
     try {
         const { message } = req.body;
 
