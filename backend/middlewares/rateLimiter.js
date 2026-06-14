@@ -1,65 +1,72 @@
+const { getRedis } = require("../config/redis");
+const { RateLimitError } = require("../errors");
+
 /**
- * In-memory rate limiter middleware.
- * No external packages required – uses a simple Map with automatic cleanup.
+ * Distributed sliding-window-log rate limiter backed by a Redis sorted set.
  *
- * Options:
- *   windowMs  – time window in milliseconds (default: 15 min)
- *   max       – max requests per window per IP (default: 10)
- *   message   – error message returned when limit is exceeded
+ * Each request adds a timestamped member to a per-identity ZSET; expired
+ * members are trimmed on every call, and the live count is compared to `max`.
+ * Because all state lives in Redis, the limit is enforced correctly across
+ * horizontally scaled instances — unlike the previous in-memory Map limiter.
+ *
+ * @param {object}   opts
+ * @param {string}   opts.keyPrefix    namespace for this limiter, e.g. "rl:login"
+ * @param {number}   opts.windowMs     window size in milliseconds
+ * @param {number}   opts.max          max requests allowed per window per identity
+ * @param {function} [opts.identifier] (req) => string; defaults to client IP
+ * @param {string}   [opts.message]    message returned on 429
  */
-
-const rateLimiter = ({
-    windowMs = 15 * 60 * 1000,  // 15 minutes
-    max = 10,                   // 10 requests per window
-    message = "Too many requests, please try again later.",
-} = {}) => {
-    // Map<string, { count: number, resetTime: number }>
-    const hits = new Map();
-
-    // Periodically clean up expired entries to prevent memory leaks
-    const cleanupInterval = setInterval(() => {
-        const now = Date.now();
-        for (const [key, entry] of hits) {
-            if (now >= entry.resetTime) {
-                hits.delete(key);
-            }
-        }
-    }, windowMs);
-
-    // Allow the timer to not keep the process alive
-    if (cleanupInterval.unref) {
-        cleanupInterval.unref();
+function rateLimiter({ keyPrefix, windowMs, max, identifier, message } = {}) {
+    if (!keyPrefix || !windowMs || !max) {
+        throw new Error("rateLimiter requires keyPrefix, windowMs, and max");
     }
 
-    return (req, res, next) => {
-        // Use IP address as the key (works behind most proxies when trust proxy is set)
-        const key = req.ip || req.connection.remoteAddress;
-        const now = Date.now();
+    const getId = identifier || ((req) => req.ip || req.connection?.remoteAddress || "unknown");
+    const msg = message || "Too many requests, please try again later.";
 
-        let entry = hits.get(key);
+    return async (req, res, next) => {
+        try {
+            const redis = getRedis();
+            const id = getId(req);
+            const key = `${keyPrefix}:${id}`;
+            const now = Date.now();
+            const windowStart = now - windowMs;
+            // Member must be unique even for same-ms requests.
+            const member = `${now}-${Math.random().toString(36).slice(2)}`;
 
-        // First request or window expired → start a fresh window
-        if (!entry || now >= entry.resetTime) {
-            entry = { count: 1, resetTime: now + windowMs };
-            hits.set(key, entry);
-        } else {
-            entry.count++;
+            // MULTI runs these atomically — ZCARD reflects state right after ZADD.
+            const results = await redis
+                .multi()
+                .zremrangebyscore(key, 0, windowStart)
+                .zadd(key, now, member)
+                .zcard(key)
+                .pexpire(key, windowMs)
+                .exec();
+
+            const count = results[2][1];
+            const remaining = Math.max(0, max - count);
+
+            res.setHeader("X-RateLimit-Limit", max);
+            res.setHeader("X-RateLimit-Remaining", remaining);
+            res.setHeader("X-RateLimit-Reset", Math.ceil((now + windowMs) / 1000));
+
+            if (count > max) {
+                const retryAfter = Math.ceil(windowMs / 1000);
+                res.setHeader("Retry-After", retryAfter);
+                throw new RateLimitError(msg, retryAfter);
+            }
+
+            return next();
+        } catch (err) {
+            if (err instanceof RateLimitError) {
+                return res.status(err.statusCode).json({ msg: err.message, retryAfter: err.retryAfter });
+            }
+            // Fail OPEN: a Redis outage should not take down auth/login entirely.
+            // We log and let the request through; the Mongo-side checks still apply.
+            console.error("Rate limiter error (failing open):", err.message);
+            return next();
         }
-
-        // Set standard rate-limit headers so the client knows what's going on
-        const remaining = Math.max(0, max - entry.count);
-        res.setHeader("X-RateLimit-Limit", max);
-        res.setHeader("X-RateLimit-Remaining", remaining);
-        res.setHeader("X-RateLimit-Reset", Math.ceil(entry.resetTime / 1000));
-
-        if (entry.count > max) {
-            const retryAfterSec = Math.ceil((entry.resetTime - now) / 1000);
-            res.setHeader("Retry-After", retryAfterSec);
-            return res.status(429).json({ message });
-        }
-
-        next();
     };
-};
+}
 
 module.exports = { rateLimiter };
