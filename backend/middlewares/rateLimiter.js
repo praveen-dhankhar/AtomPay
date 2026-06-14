@@ -1,4 +1,4 @@
-const { getRedis } = require("../config/redis");
+const { getRedis } = require("../db/redis");
 
 /**
  * Distributed sliding-window-log rate limiter backed by a Redis sorted set.
