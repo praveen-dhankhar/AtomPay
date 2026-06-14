@@ -1,24 +1,55 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ═══════════════════════════════════════════════════════
+   AtomPay — "Quantum" design system
+   ═══════════════════════════════════════════════════════ */
 
 :root {
-  --orange: #FF5722;
-  --orange-light: #FF7043;
-  --orange-dim: rgba(255, 87, 34, 0.15);
-  --orange-glow: rgba(255, 87, 34, 0.35);
-  --bg: #0a0a0a;
-  --bg2: #111111;
-  --bg3: #1a1a1a;
-  --bg4: #222222;
-  --text: #f0f0f0;
-  --text2: #999;
-  --text3: #555;
-  --green: #00C853;
-  --red: #FF1744;
-  --green-dim: rgba(0, 200, 83, 0.12);
-  --red-dim: rgba(255, 23, 68, 0.12);
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  /* ── Surfaces (deep space) ── */
+  --bg: #0A0B14;
+  --bg-2: #10121E;
+  --bg-3: #171A2B;
+  --bg-4: #1F2438;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-2: rgba(255, 255, 255, 0.14);
+
+  /* ── Accents (atomic energy) ── */
+  --accent: #6366F1;      /* indigo */
+  --accent-2: #22D3EE;    /* cyan — the electron */
+  --accent-3: #A855F7;    /* violet */
+  --accent-soft: rgba(99, 102, 241, 0.15);
+  --accent-glow: rgba(99, 102, 241, 0.45);
+  --grad: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #22D3EE 100%);
+  --grad-soft: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(34, 211, 238, 0.12));
+
+  /* ── Text ── */
+  --text: #EDEFF7;
+  --text-2: #9AA0B5;
+  --text-3: #5A6076;
+
+  /* ── Semantic ── */
+  --green: #2DD4BF;
+  --red: #FB7185;
+  --green-dim: rgba(45, 212, 191, 0.14);
+  --red-dim: rgba(251, 113, 133, 0.14);
+
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --shadow-glow: 0 8px 40px rgba(99, 102, 241, 0.25);
+
+  /* ── Back-compat aliases — keep not-yet-rebuilt pages on the new palette ── */
+  --orange: var(--accent);
+  --orange-light: var(--accent-3);
+  --orange-dim: var(--accent-soft);
+  --orange-glow: var(--accent-glow);
+  --bg2: var(--bg-2);
+  --bg3: var(--bg-3);
+  --bg4: var(--bg-4);
+  --text2: var(--text-2);
+  --text3: var(--text-3);
 }
 
 * {
@@ -29,31 +60,46 @@
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: #000;
+  font-family: 'Inter', sans-serif;
+  background:
+    radial-gradient(900px circle at 12% -10%, rgba(99, 102, 241, 0.18), transparent 45%),
+    radial-gradient(800px circle at 100% 0%, rgba(34, 211, 238, 0.12), transparent 40%),
+    radial-gradient(900px circle at 50% 120%, rgba(168, 85, 247, 0.12), transparent 45%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   overflow-x: hidden;
 }
 
-input {
-  font-family: 'DM Sans', sans-serif;
+h1, h2, h3, h4, .display {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ── Inputs ── */
+input,
+textarea {
+  font-family: 'Inter', sans-serif;
   width: 100%;
-  background: var(--bg3);
-  border: 1.5px solid var(--bg4);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   color: var(--text);
   padding: 14px 16px;
   border-radius: var(--radius-sm);
   font-size: 15px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
-input:focus {
-  border-color: var(--orange);
-  background: var(--bg2);
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  background: var(--bg-2);
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
-input::placeholder { color: var(--text3); }
+input::placeholder,
+textarea::placeholder { color: var(--text-3); }
 
 .input-group {
   display: flex;
@@ -64,31 +110,108 @@ input::placeholder { color: var(--text3); }
 
 .input-group label {
   font-size: 13px;
-  color: var(--text2);
+  color: var(--text-2);
   font-weight: 500;
   letter-spacing: 0.3px;
 }
 
+/* ═══════════════════════════════════════════════════════
+   AtomLoader — orbiting electrons
+   ═══════════════════════════════════════════════════════ */
+
+.atom-loader {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.atom {
+  position: relative;
+  width: var(--atom-size, 64px);
+  height: var(--atom-size, 64px);
+}
+
+.atom-nucleus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20%;
+  height: 20%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-2) 45%, var(--accent) 100%);
+  box-shadow: 0 0 10px var(--accent-2), 0 0 22px var(--accent-glow);
+  animation: nucleus-pulse 1.6s ease-in-out infinite;
+}
+
+.atom-orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 38%;
+  border: 1.6px solid rgba(99, 102, 241, 0.35);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.atom-electron {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: calc(var(--atom-size, 64px) * 0.13);
+  height: calc(var(--atom-size, 64px) * 0.13);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffffff, var(--accent-2));
+  box-shadow: 0 0 8px var(--accent-2), 0 0 16px rgba(34, 211, 238, 0.6);
+}
+
+.orbit-1 { animation: orbit-spin-0 2s linear infinite; }
+.orbit-2 { animation: orbit-spin-60 1.7s linear infinite; }
+.orbit-3 { animation: orbit-spin-120 2.3s linear infinite; }
+
+@keyframes orbit-spin-0 {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes orbit-spin-60 {
+  from { transform: translate(-50%, -50%) rotate(60deg); }
+  to   { transform: translate(-50%, -50%) rotate(420deg); }
+}
+@keyframes orbit-spin-120 {
+  from { transform: translate(-50%, -50%) rotate(120deg); }
+  to   { transform: translate(-50%, -50%) rotate(480deg); }
+}
+
+@keyframes nucleus-pulse {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-2), 0 0 16px var(--accent-glow); }
+  50%      { box-shadow: 0 0 14px var(--accent-2), 0 0 30px var(--accent-glow); }
+}
+
+.atom-loader-label {
+  font-size: 13px;
+  color: var(--text-2);
+  letter-spacing: 0.3px;
+}
+
+/* ── Small inline spinner (buttons) — a compact themed ring ── */
 .spinner {
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.logo-atom {
-  font-size: 32px;
-  display: inline-block;
-}
-
-.logo-atom.spinning {
-  animation: spin 1s linear infinite;
-}
+/* ── Legacy logo atom (kept for any leftover refs) ── */
+.logo-atom { font-size: 32px; display: inline-block; }
+.logo-atom.spinning { animation: spin 1s linear infinite; }
 
 .loading-screen {
   display: flex;
@@ -98,9 +221,10 @@ input::placeholder { color: var(--text3); }
   background: var(--bg);
 }
 
+/* ── Back button ── */
 .back-btn {
-  background: var(--bg3);
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--text);
   width: 40px;
   height: 40px;
@@ -110,37 +234,40 @@ input::placeholder { color: var(--text3); }
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
-.back-btn:hover { background: var(--bg4); }
+.back-btn:hover { background: var(--surface-2); border-color: var(--border-2); }
 
+/* ── Empty state ── */
 .empty-txn {
   text-align: center;
   padding: 48px 24px;
-  color: var(--text2);
+  color: var(--text-2);
 }
 
 .empty-txn button {
   margin-top: 16px;
-  background: var(--orange-dim);
-  color: var(--orange);
-  border: 1px solid var(--orange);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  border: 1px solid var(--accent);
   padding: 12px 24px;
   border-radius: 100px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
+  transition: transform 0.15s, box-shadow 0.2s;
 }
 
-/* ═══════════════════════════════════════
+.empty-txn button:hover { transform: translateY(-1px); box-shadow: var(--shadow-glow); }
+
+/* ═══════════════════════════════════════════════════════
    App Layout — Responsive
-   ═══════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════ */
 
 .app-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--bg);
 }
 
 .app-main {
@@ -149,32 +276,22 @@ input::placeholder { color: var(--text3); }
   position: relative;
 }
 
-/* Mobile: main content is full width */
 @media (max-width: 767px) {
-  .app-layout {
-    flex-direction: column;
-  }
-  .app-main {
-    min-height: 100vh;
-  }
+  .app-layout { flex-direction: column; }
+  .app-main { min-height: 100vh; }
 }
 
-/* Desktop: constrain main content for readability */
 @media (min-width: 768px) {
   .app-main {
     max-width: 100%;
     overflow-y: auto;
     height: 100vh;
   }
-
-  /* Scrollbar styling */
   .app-main::-webkit-scrollbar { width: 6px; }
   .app-main::-webkit-scrollbar-track { background: transparent; }
   .app-main::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 4px;
   }
-  .app-main::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,0.15);
-  }
+  .app-main::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }
 }
