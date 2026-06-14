@@ -1,5 +1,4 @@
 const { getRedis } = require("../config/redis");
-const { RateLimitError } = require("../errors");
 
 /**
  * Distributed sliding-window-log rate limiter backed by a Redis sorted set.
@@ -16,7 +15,7 @@ const { RateLimitError } = require("../errors");
  * @param {function} [opts.identifier] (req) => string; defaults to client IP
  * @param {string}   [opts.message]    message returned on 429
  */
-function rateLimiter({ keyPrefix, windowMs, max, identifier, message } = {}) {
+const rateLimiter = ({ keyPrefix, windowMs, max, identifier, message } = {}) => {
     if (!keyPrefix || !windowMs || !max) {
         throw new Error("rateLimiter requires keyPrefix, windowMs, and max");
     }
@@ -53,20 +52,17 @@ function rateLimiter({ keyPrefix, windowMs, max, identifier, message } = {}) {
             if (count > max) {
                 const retryAfter = Math.ceil(windowMs / 1000);
                 res.setHeader("Retry-After", retryAfter);
-                throw new RateLimitError(msg, retryAfter);
+                return res.status(429).json({ msg, retryAfter });
             }
 
             return next();
         } catch (err) {
-            if (err instanceof RateLimitError) {
-                return res.status(err.statusCode).json({ msg: err.message, retryAfter: err.retryAfter });
-            }
             // Fail OPEN: a Redis outage should not take down auth/login entirely.
             // We log and let the request through; the Mongo-side checks still apply.
             console.error("Rate limiter error (failing open):", err.message);
             return next();
         }
     };
-}
+};
 
 module.exports = { rateLimiter };
