@@ -36,15 +36,22 @@ Kyunki security aur reliability me koi jugaad nahi chalta. 🛡️
 ### 1. Bulletproof Transactions (The Backend Heartbeat)
 - **All or Nothing:** Atomic money transfers via MongoDB sessions. If step 14 fails, steps 1 through 13 rollback automatically. No partial credits, no missing funds.
 - **Race Condition Safety:** Balance is checked *twice* (once outside the transaction, once *inside* the locked session) to prevent concurrent double-spending.
-- **Idempotency Keys:** Network went buffering? The frontend generates an `Idempotency-Key` so backend caches the response. No more accidental double charges on retries!
+- **Idempotency Keys:** Network went buffering? The frontend sends an `Idempotency-Key` and the backend stakes an atomic Redis `SET NX` claim *before* touching MongoDB — so a double-tap or auto-retry replays the cached response instead of charging twice. No race window, no double charges.
 
 ### 2. Fort Knox Level Security 
 - **Dual Tokens:** 15-minute Access Tokens paired with 7-day Refresh Tokens. 
 - **OTP Verification:** Email OTPs sent via NodeMailer using `speakeasy`, acting as a mandatory 2FA.
 - **Independent Hashes:** UPI PINs and Passwords are hashed separately (`bcrypt`) and protected via `select: false`.
-- **In-Memory Rate Limiting:** Custom middleware to block brute-force attacks on signup/login routes. Spammers are blocked natively.
+- **Distributed Rate Limiting (Redis):** A Redis sorted-set sliding window enforces limits across *every* backend instance in a single round-trip (auth keyed by IP, AI chat & transfers keyed per user). Brute-force protection holds at scale instead of resetting per process.
 
-### 3. Beautiful & Responsive Frontend (React + Vite)
+### 3. Distributed & Production-Ready (Redis Backbone)
+- **Read-through Caching:** Balance and transaction history are served from Redis and invalidated **only after** a successful 2-phase commit, so financial data is fast but never stale.
+- **Async Event Queues (BullMQ):** Transaction emails and audit logs are pushed to Redis-backed queues and handled by a **separate worker process** (`npm run start:worker`), with retries and backoff. The HTTP request returns the moment the money has moved — heavy work never blocks the response. *(OTP emails stay synchronous by design — they're auth-critical and short-lived.)*
+- **Graceful Shutdown:** On `SIGTERM`/`SIGINT`, the API drains in-flight requests (including active Mongo transactions) before closing queues, Mongo, and Redis — with a 10s safety net. The worker finishes its active jobs before exiting.
+- **Connection Pooling:** A bounded, reused MongoDB pool (`maxPoolSize`/`minPoolSize` + timeouts) and a single pre-warmed, multiplexed Redis client — no connection churn per request.
+- **Fail-Open Everywhere:** Caching, idempotency, and queueing all degrade gracefully — a Redis blip can never break a legitimate transfer.
+
+### 4. Beautiful & Responsive Frontend (React + Vite)
 - Polished, mobile-responsive UI specifically tailored to feel like a premium Fintech app (think Cred/PhonePe vibes).
 - Real-time QR Code scanning integrated directly into the browser.
 - Seamless, micro-animated user-flows.
@@ -82,8 +89,11 @@ I've tackled the hardest parts first:
 - [x] Atomic Database Transactions
 - [x] Aggregation-based Daily Caps
 - [x] Email OTP authentication
-- [x] Idempotency for network drops
-- [x] Rate Limiting
+- [x] Redis idempotency (atomic `SET NX`)
+- [x] Distributed Rate Limiting (Redis sliding window)
+- [x] Read-through caching (balance + history)
+- [x] Async event queues (BullMQ workers)
+- [x] Graceful shutdown + connection pooling
 - [x] Real-time QR Code Payments
 
 Still cooking:

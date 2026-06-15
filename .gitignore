@@ -1,6 +1,7 @@
 # dependencies
 node_modules/
-
+AtomPay_Interview_Prep.docx
+AtomPay_Interview_Prep.pdf
 # environment variables
 .env
 .env.*
