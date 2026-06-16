@@ -44,7 +44,7 @@ export default function Transactions({ token, navigate }) {
     <div className="txn-page">
       <div className="txn-header">
         <button className="back-btn" onClick={() => navigate("dashboard")}>←</button>
-        <h2>Transactions</h2>
+        <h2>Royal Ledger</h2>
         <div />
       </div>
 

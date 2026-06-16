@@ -117,11 +117,56 @@ export default function Transfer({ token, navigate, initialData }) {
   const formatAmount = (n) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
+  // ── Cinematic Success Screen ──
+  if (step === 3) {
+    return (
+      <div className="success-overlay">
+        {/* Confetti particles */}
+        <div className="confetti-container">
+          {Array.from({ length: 20 }, (_, i) => (
+            <div key={i} className="confetti" />
+          ))}
+        </div>
+
+        <div className="success-content">
+          {/* Animated checkmark with ripple rings */}
+          <div className="success-check-wrap">
+            <div className="success-ripple" />
+            <div className="success-ripple" />
+            <div className="success-ripple" />
+            <div className="success-check-circle">
+              <svg className="success-check-svg" viewBox="0 0 44 44">
+                <path className="check-path" d="M12 22l8 8 12-16" />
+              </svg>
+            </div>
+          </div>
+
+          <h2>Money Sent!</h2>
+          <div className="success-amount-display">
+            {formatAmount(Number(form.amount))}
+          </div>
+          <p className="success-recipient">
+            successfully sent to <strong>@{form.receiverUsername}</strong>
+          </p>
+
+          <div className="success-actions">
+            <button className="transfer-btn" onClick={handleNewTransfer}>
+              Send another payment
+            </button>
+            <button className="transfer-btn-outline" onClick={() => navigate("dashboard")}>
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="transfer-page">
       <div className="transfer-header">
         <button className="back-btn" onClick={() => step === 2 ? setStep(1) : navigate("dashboard")}>←</button>
-        <h2>{step === 1 ? "Send Money" : step === 2 ? "Enter PIN" : "Done!"}</h2>
+        <h2>{step === 1 ? "Send Money" : "Enter PIN"}</h2>
         <div />
       </div>
 
@@ -239,24 +284,12 @@ export default function Transfer({ token, navigate, initialData }) {
 
           {error && <div className="transfer-error">{error}</div>}
 
-          <button className="transfer-btn" onClick={handleTransfer} disabled={loading}>
+          <button
+            className={`transfer-btn ${loading ? "sending" : ""}`}
+            onClick={handleTransfer}
+            disabled={loading}
+          >
             {loading ? <AtomLoader size={24} /> : `Confirm & Send ${formatAmount(Number(form.amount))}`}
-          </button>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className="success-screen">
-          <div className="success-circle">
-            <span>✓</span>
-          </div>
-          <h2>Money Sent!</h2>
-          <p>{formatAmount(Number(form.amount))} successfully sent to @{form.receiverUsername}</p>
-          <button className="transfer-btn" onClick={handleNewTransfer}>
-            Send another
-          </button>
-          <button className="transfer-btn-outline" onClick={() => navigate("dashboard")}>
-            Go to Dashboard
           </button>
         </div>
       )}

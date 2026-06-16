@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api";
 import AtomLoader from "../components/AtomLoader";
+import RoyalWelcome from "../components/RoyalWelcome";
 import "../styles/auth.css";
 
 export default function Signup({ onLogin, goToLogin }) {
@@ -8,6 +9,7 @@ export default function Signup({ onLogin, goToLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [welcome, setWelcome] = useState(null); // { name, auth } once account is created
 
   const handleSendOTP = async () => {
     setError("");
@@ -43,7 +45,8 @@ export default function Signup({ onLogin, goToLogin }) {
         method: "POST",
         body: JSON.stringify(form),
       });
-      onLogin(data.accessToken, data.refreshToken, data.user);
+      // Brand-new sovereign — crown them before they enter.
+      setWelcome({ name: form.name || data.user?.username || "Guest", auth: data });
     } catch (err) {
       setError(err.message || "Signup failed");
     } finally {
@@ -53,16 +56,33 @@ export default function Signup({ onLogin, goToLogin }) {
 
   const f = (key) => (e) => setForm({ ...form, [key]: e.target.value });
 
+  // A first-ever sovereign — full coronation, then into the kingdom.
+  if (welcome) {
+    return (
+      <RoyalWelcome
+        name={welcome.name}
+        isNewUser={true}
+        onEnter={() =>
+          onLogin(welcome.auth.accessToken, welcome.auth.refreshToken, welcome.auth.user)
+        }
+      />
+    );
+  }
+
   return (
     <div className="auth-container">
       <div className="auth-orb auth-orb-1" />
       <div className="auth-orb auth-orb-2" />
       <div className="auth-card">
         <div className="auth-brand">
-          <AtomLoader size={56} />
+          <div className="auth-crown">♛</div>
+          <AtomLoader size={56} royal />
           <div className="auth-wordmark">Atom<span>Pay</span></div>
         </div>
-        <p className="auth-subtitle">Get started with a ₹5,000 signup bonus</p>
+        <div className="auth-host">
+          <span /><em>Your host, <strong>Akshay Dhankhar</strong></em><span />
+        </div>
+        <p className="auth-subtitle">Claim your throne — and a ₹500,000 royal treasury to begin</p>
 
         <div className="auth-form">
           {!otpSent ? (
@@ -116,6 +136,10 @@ export default function Signup({ onLogin, goToLogin }) {
           <p className="auth-switch">
             Already have an account?{" "}
             <span onClick={goToLogin}>Log in</span>
+          </p>
+
+          <p className="auth-seal">
+            Crafted in gold by <strong>Akshay Dhankhar</strong>
           </p>
         </div>
       </div>

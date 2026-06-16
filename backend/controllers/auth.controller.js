@@ -248,6 +248,58 @@ exports.sendOTP = async (req, res) => {
     }
 };
 
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        // Only actually send when the account exists, but always respond the
+        // same way so we don't reveal which emails are registered.
+        if (user) {
+            const otp = generateOTP(email);
+            await sendOTPEmail(email, otp);
+        }
+
+        return res.status(200).json({
+            msg: "If an account exists for this email, a password reset OTP has been sent."
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: "Failed to send OTP. Please try again." });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        const isValid = verifyOTP(email, otp);
+        if (!isValid) {
+            return res.status(400).json({ msg: "Wrong or expired OTP" });
+        }
+
+        const user = await User.findOne({ email }).select("+password");
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        // Revoke every refresh token — a reset should log out all sessions.
+        await revokeAllUserTokens(user._id);
+
+        return res.status(200).json({
+            msg: "Password reset successfully. Please log in with your new password."
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({ msg: "An unexpected error occurred. Please try again." });
+    }
+};
+
 exports.verifyOTP = async (req, res) => {
     try {
         const { email, otp } = req.body;

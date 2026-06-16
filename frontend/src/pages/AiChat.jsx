@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { api } from "../api";
 import BottomNav from "../components/BottomNav";
 import AtomLoader from "../components/AtomLoader";
+import { royalGreeting } from "../utils/royal";
 import "../styles/aichat.css";
 
 // ── Simple Markdown Renderer ──
@@ -269,6 +270,8 @@ export default function AiChat({ token, user }) {
     { id: "insights", icon: "🔍", label: "Insights" },
   ];
 
+  const g = royalGreeting(user?.username);
+
   return (
     <div className="ai-page">
       {/* Header */}
@@ -277,7 +280,7 @@ export default function AiChat({ token, user }) {
           <div className="ai-logo">✦</div>
           <div className="ai-header-title">
             <h2>AtomPay AI</h2>
-            <span>Your Personal Finance Assistant</span>
+            <span>Royal Advisor to the Treasury</span>
           </div>
         </div>
         <div className="ai-header-actions">
@@ -314,8 +317,8 @@ export default function AiChat({ token, user }) {
             {messages.length === 0 && !loading ? (
               <div className="ai-welcome">
                 <div className="ai-welcome-icon">✦</div>
-                <h3>Hey {user?.username} 👋</h3>
-                <p>I'm your AI-powered financial assistant. Ask me anything about your wallet, transactions, spending patterns, or get personalized money-saving tips!</p>
+                <h3>{g.greeting}, {user?.username}</h3>
+                <p>I'm your AtomPay assistant. Ask me anything about your wallet, transactions, spending patterns, or money-saving tips.</p>
                 <div className="ai-caps-grid">
                   {[
                     { icon: "💰", title: "Balance & Wallet", desc: "Check balance, wallet status" },
@@ -359,7 +362,7 @@ export default function AiChat({ token, user }) {
                 {loading && (
                   <div className="ai-typing">
                     <div className="ai-msg-avatar" style={{
-                      background: "linear-gradient(135deg, var(--orange), #FF9100)",
+                      background: "var(--gold-grad)",
                       width: 32, height: 32, borderRadius: 10,
                       display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14
                     }}>✦</div>
@@ -571,7 +574,7 @@ export default function AiChat({ token, user }) {
                     <span className="ai-insight-title">Daily Transfer Limit</span>
                   </div>
                   <div className="ai-insight-value" style={{
-                    color: (insightsData.dailyLimit.percentage_used || 0) > 80 ? "var(--red)" : "var(--orange)"
+                    color: (insightsData.dailyLimit.percentage_used || 0) > 80 ? "var(--red)" : "var(--gold-3)"
                   }}>
                     {formatAmount(insightsData.dailyLimit.used)} <span style={{ fontSize: 16, color: "var(--text2)" }}>/ ₹1,00,000</span>
                   </div>
@@ -585,7 +588,7 @@ export default function AiChat({ token, user }) {
                         width: `${insightsData.dailyLimit.percentage_used || 0}%`,
                         background: (insightsData.dailyLimit.percentage_used || 0) > 80
                           ? "linear-gradient(90deg, var(--red), #FF5252)"
-                          : "linear-gradient(90deg, var(--orange), #FF9100)"
+                          : "var(--gold-grad)"
                       }}
                     />
                   </div>

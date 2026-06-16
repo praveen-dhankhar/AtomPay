@@ -40,11 +40,19 @@ export default function SideNav({ active, navigate, user, onLogout }) {
         </nav>
       </div>
 
+      <div className="sidenav-ornament" aria-hidden="true">
+        <span className="sidenav-rule" />
+        <div className="sidenav-lotus" />
+        <span className="sidenav-motto">◈ Wealth, well guarded ◈</span>
+        <span className="sidenav-rule" />
+      </div>
+
       <div className="sidenav-bottom">
         <button className="sidenav-link logout-link" onClick={onLogout}>
           <span className="sidenav-link-icon">🚪</span>
           <span className="sidenav-link-label">Logout</span>
         </button>
+        <div className="sidenav-credit">Crafted by <strong>Akshay Dhankhar</strong></div>
       </div>
     </aside>
   );

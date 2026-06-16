@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../api";
 import BottomNav from "../components/BottomNav";
 import AtomLoader from "../components/AtomLoader";
+import { honorificFor, HOST } from "../utils/royal";
 import "../styles/settings.css";
 
 export default function Settings({ token, user, navigate, onLogout }) {
@@ -55,8 +56,12 @@ export default function Settings({ token, user, navigate, onLogout }) {
 
       {/* Profile Card */}
       <div className="profile-card">
-        <div className="profile-avatar">{user?.username?.[0]?.toUpperCase()}</div>
+        <div className="profile-avatar">
+          <span className="profile-crown">♛</span>
+          {user?.username?.[0]?.toUpperCase()}
+        </div>
         <div className="profile-info">
+          <span className="profile-honorific">{honorificFor(user?.username)}</span>
           <h3>{user?.username}</h3>
           <span className="profile-role">{user?.role}</span>
         </div>
@@ -130,6 +135,10 @@ export default function Settings({ token, user, navigate, onLogout }) {
           </div>
         </div>
       )}
+
+      <div className="settings-footer">
+        <span /><em>At your service — <strong>{HOST}</strong></em><span />
+      </div>
 
       <div style={{ height: 80 }} />
       <BottomNav active="settings" navigate={navigate} />

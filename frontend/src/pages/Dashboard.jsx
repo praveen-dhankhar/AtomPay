@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../api";
 import BottomNav from "../components/BottomNav";
 import AtomLoader from "../components/AtomLoader";
+import { royalGreeting, HOST } from "../utils/royal";
 import "../styles/dashboard.css";
 
 export default function Dashboard({ token, user, navigate, onLogout }) {
@@ -43,9 +44,11 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
+  const g = royalGreeting(user?.username);
+
   if (loading) return (
     <div className="loading-screen">
-      <AtomLoader size={72} label="Loading your wallet…" />
+      <AtomLoader size={72} royal label="Preparing your court…" />
     </div>
   );
 
@@ -76,10 +79,11 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
       {/* Header */}
       <div className="dash-header">
         <div>
-          <p className="dash-greeting">Hello 👋</p>
+          <p className="dash-greeting">{g.greeting}</p>
           <h2 className="dash-name">{user?.username}</h2>
         </div>
         <div className="dash-avatar" onClick={() => navigate("settings")}>
+          <span className="dash-avatar-crown">♛</span>
           {user?.username?.[0]?.toUpperCase()}
         </div>
       </div>
@@ -90,7 +94,7 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
         <div className="balance-card">
           <div className="balance-card-glow" />
           <div className="balance-top">
-            <span className="balance-label">Wallet Balance</span>
+            <span className="balance-label">👑 Royal Treasury</span>
             <button className="eye-btn" onClick={() => setBalanceVisible(!balanceVisible)}>
               {balanceVisible ? "👁" : "🙈"}
             </button>
@@ -173,6 +177,10 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
             </div>
           ))
         )}
+      </div>
+
+      <div className="dash-footer">
+        <span /><em>Your kingdom, curated by <strong>{HOST}</strong></em><span />
       </div>
 
       <div style={{ height: 80 }} />

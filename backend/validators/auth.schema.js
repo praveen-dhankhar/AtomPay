@@ -33,6 +33,16 @@ exports.sendSignupOTPSchema = zod.object({
     email: zod.string().email()
 });
 
+exports.forgotPasswordSchema = zod.object({
+    email: zod.string().email()
+});
+
+exports.resetPasswordSchema = zod.object({
+    email: zod.string().email(),
+    otp: zod.string().length(6),
+    newPassword: zod.string().min(8).max(32)
+});
+
 exports.verifyOTPSchema = zod.object({
     email: zod.string().email(),
     otp: zod.string().length(6)
