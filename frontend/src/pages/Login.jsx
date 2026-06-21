@@ -55,7 +55,7 @@ export default function Login({ onLogin, goToSignup }) {
         body: JSON.stringify({ email: form.email, otp: form.otp }),
       });
       // Hold the session and roll out the red carpet before entering.
-      setWelcome({ name: data.user?.username || "Guest", auth: data });
+      setWelcome({ name: data.user?.name || data.user?.username || "Guest", auth: data });
     } catch (err) {
       setError(err.message);
     } finally {

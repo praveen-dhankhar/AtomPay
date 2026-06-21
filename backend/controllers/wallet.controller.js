@@ -2,9 +2,11 @@ const Wallet = require("../db/wallet");
 const Transaction = require("../db/transections");
 const { cacheGet, cacheSet } = require("../db/cache");
 
-// Read-through cache TTLs (also a safety net — both keys are explicitly
-// invalidated on every successful transfer, so they never serve stale data).
-const BALANCE_TTL = 300;   // 5 minutes
+// Read-through cache TTLs. Both keys are explicitly invalidated on every
+// successful transfer; the TTL is only a backstop if that invalidation is ever
+// missed. Keep BALANCE short — it's money, so bound worst-case staleness to a
+// minute rather than letting a missed invalidation strand it for 5 minutes.
+const BALANCE_TTL = 60;    // 1 minute
 const TXNS_TTL = 30;       // 30 seconds
 
 exports.getMyWallet = async (req, res) => {

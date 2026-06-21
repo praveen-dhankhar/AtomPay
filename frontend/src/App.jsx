@@ -104,7 +104,7 @@ export default function App() {
         {page === "transfer" && <Transfer token={token} navigate={navigate} initialData={transferData} />}
         {page === "transactions" && <Transactions token={token} navigate={navigate} />}
         {page === "settings" && <Settings token={token} user={user} navigate={navigate} onLogout={handleLogout} />}
-        {page === "ai" && <AiChat token={token} user={user} />}
+        {page === "ai" && <AiChat token={token} user={user} navigate={navigate} />}
       </main>
 
     </div>

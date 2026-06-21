@@ -145,12 +145,25 @@
 .balance-amount {
   position: relative;
   font-family: 'Syne', sans-serif;
-  font-size: 46px;
+  /* Responsive: scales with viewport so long balances (e.g. ₹1,00,00,000)
+     never clip or show only half. Shrinks on narrow screens, caps on large. */
+  font-size: clamp(28px, 9vw, 46px);
   font-weight: 800;
   color: var(--text);
   margin-bottom: 16px;
   letter-spacing: -1.5px;
-  line-height: 1;
+  line-height: 1.05;
+  /* Keep the full amount on one readable line, but allow wrapping rather than
+     overflowing the card if it's ever too long. */
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Very narrow phones: allow the amount to wrap instead of clipping. */
+@media (max-width: 360px) {
+  .balance-amount { white-space: normal; }
 }
 
 .balance-meta {
@@ -451,7 +464,7 @@
   }
 
   .balance-card { margin: 0; padding: 30px; }
-  .balance-amount { font-size: 54px; }
+  .balance-amount { font-size: clamp(34px, 5vw, 54px); white-space: nowrap; }
 
   .limit-bar-section {
     margin: 0;
@@ -485,7 +498,7 @@
   .dash-top-grid { padding: 0 48px; }
   .quick-actions { padding: 22px 48px 8px; }
   .recent-section { padding: 20px 48px 48px; }
-  .balance-amount { font-size: 60px; }
+  .balance-amount { font-size: clamp(40px, 4vw, 60px); }
 }
 
 /* ═══════════════════════════════════════════════════════

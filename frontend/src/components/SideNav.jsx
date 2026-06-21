@@ -4,7 +4,7 @@ const NAV_ITEMS = [
   { id: "dashboard", icon: "⌂", label: "Dashboard" },
   { id: "transfer", icon: "↑", label: "Send Money" },
   { id: "transactions", icon: "☰", label: "Transactions" },
-  { id: "ai", icon: "✦", label: "AI Agent" },
+  { id: "ai", icon: "✦", label: "AtomAI" },
   { id: "settings", icon: "⚙", label: "Settings" },
 ];
 
@@ -18,10 +18,10 @@ export default function SideNav({ active, navigate, user, onLogout }) {
         </div>
 
         <div className="sidenav-user">
-          <div className="sidenav-avatar">{user?.username?.[0]?.toUpperCase()}</div>
+          <div className="sidenav-avatar">{(user?.name || user?.username)?.[0]?.toUpperCase()}</div>
           <div className="sidenav-user-info">
-            <span className="sidenav-username">@{user?.username}</span>
-            <span className="sidenav-role">{user?.role || "User"}</span>
+            <span className="sidenav-username">{user?.name || user?.username}</span>
+            <span className="sidenav-role">@{user?.username}</span>
           </div>
         </div>
 

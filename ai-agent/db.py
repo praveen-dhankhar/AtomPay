@@ -155,3 +155,180 @@ async def get_daily_limit_usage(wallet_id) -> dict:
         "percentage_used": round((used / 100000) * 100, 1),
         "transaction_count_today": result[0]["count"] if result else 0,
     }
+
+
+# ── Analytics helpers (deterministic, no LLM) ──
+
+async def _window_totals(wallet_id, start, end) -> dict:
+    """Sum of successful sent/received amounts in [start, end)."""
+    db = await get_db()
+
+    async def _sum(direction):
+        field = "fromWallet" if direction == "sent" else "toWallet"
+        pipeline = [
+            {"$match": {field: wallet_id, "status": "success",
+                        "createdAt": {"$gte": start, "$lt": end}}},
+            {"$group": {"_id": None, "total": {"$sum": "$amount"}, "count": {"$sum": 1}}},
+        ]
+        res = await db.transactions.aggregate(pipeline).to_list(1)
+        return (res[0]["total"], res[0]["count"]) if res else (0, 0)
+
+    sent, sent_count = await _sum("sent")
+    received, received_count = await _sum("received")
+    return {
+        "total_sent": sent,
+        "sent_count": sent_count,
+        "total_received": received,
+        "received_count": received_count,
+        "net_flow": received - sent,
+    }
+
+
+def _pct_change(current, previous) -> float | None:
+    """Percentage change from previous to current; None if previous is 0."""
+    if not previous:
+        return None
+    return round(((current - previous) / previous) * 100, 1)
+
+
+async def compare_periods(wallet_id, days: int = 30) -> dict:
+    """Compare the most recent `days` window with the one immediately before it."""
+    from datetime import datetime, timedelta
+
+    now = datetime.utcnow()
+    cur_start = now - timedelta(days=days)
+    prev_start = now - timedelta(days=days * 2)
+
+    current = await _window_totals(wallet_id, cur_start, now)
+    previous = await _window_totals(wallet_id, prev_start, cur_start)
+
+    return {
+        "period_days": days,
+        "current": current,
+        "previous": previous,
+        "change": {
+            "sent_pct": _pct_change(current["total_sent"], previous["total_sent"]),
+            "received_pct": _pct_change(current["total_received"], previous["total_received"]),
+            "net_pct": _pct_change(current["net_flow"], previous["net_flow"]),
+            "sent_delta": current["total_sent"] - previous["total_sent"],
+            "received_delta": current["total_received"] - previous["total_received"],
+        },
+    }
+
+
+async def detect_recurring_payments(wallet_id, days: int = 90, min_count: int = 3) -> dict:
+    """Find payees the user pays repeatedly — likely subscriptions/regular transfers.
+
+    A payee is flagged when there are >= min_count successful debits to them in
+    the window. Cadence (avg days between payments) hints at the billing cycle.
+    """
+    from datetime import datetime, timedelta
+    db = await get_db()
+
+    since = datetime.utcnow() - timedelta(days=days)
+    pipeline = [
+        {"$match": {"fromWallet": wallet_id, "status": "success", "createdAt": {"$gte": since}}},
+        {"$group": {
+            "_id": "$receiverUsername",
+            "count": {"$sum": 1},
+            "total": {"$sum": "$amount"},
+            "avg_amount": {"$avg": "$amount"},
+            "dates": {"$push": "$createdAt"},
+        }},
+        {"$match": {"count": {"$gte": min_count}}},
+        {"$sort": {"total": -1}},
+        {"$limit": 20},
+    ]
+    rows = await db.transactions.aggregate(pipeline).to_list(20)
+
+    def _cadence(dates):
+        ds = sorted(dates)
+        if len(ds) < 2:
+            return None
+        gaps = [(ds[i] - ds[i - 1]).total_seconds() / 86400 for i in range(1, len(ds))]
+        return round(sum(gaps) / len(gaps), 1)
+
+    def _label(cadence):
+        if cadence is None:
+            return "irregular"
+        if 25 <= cadence <= 35:
+            return "monthly"
+        if 6 <= cadence <= 8:
+            return "weekly"
+        if 13 <= cadence <= 16:
+            return "fortnightly"
+        if cadence < 6:
+            return "frequent"
+        return "periodic"
+
+    recurring = []
+    for r in rows:
+        cadence = _cadence(r["dates"])
+        recurring.append({
+            "username": r["_id"],
+            "count": r["count"],
+            "total": r["total"],
+            "avg_amount": round(r["avg_amount"], 2),
+            "cadence_days": cadence,
+            "cadence_label": _label(cadence),
+        })
+
+    est_monthly = round(
+        sum(r["avg_amount"] for r in recurring if r["cadence_label"] in ("monthly", "periodic", "fortnightly", "weekly")), 2
+    )
+    return {
+        "window_days": days,
+        "recurring_count": len(recurring),
+        "estimated_monthly_recurring": est_monthly,
+        "recurring": recurring,
+    }
+
+
+async def forecast_cashflow(wallet_id) -> dict:
+    """Project this calendar month's spend and month-end balance from the pace so far."""
+    from datetime import datetime
+    import calendar
+
+    db = await get_db()
+    now = datetime.utcnow()
+    month_start = datetime(now.year, now.month, 1)
+    days_in_month = calendar.monthrange(now.year, now.month)[1]
+    days_elapsed = max(1, (now - month_start).days + 1)
+    days_remaining = max(0, days_in_month - days_elapsed)
+
+    totals = await _window_totals(wallet_id, month_start, now)
+    spent = totals["total_sent"]
+    received = totals["total_received"]
+
+    avg_daily_spend = spent / days_elapsed
+    avg_daily_received = received / days_elapsed
+    projected_spend = round(avg_daily_spend * days_in_month, 2)
+    projected_received = round(avg_daily_received * days_in_month, 2)
+
+    wallet = await db.wallets.find_one({"_id": wallet_id})
+    current_balance = wallet.get("balance", 0) if wallet else 0
+    projected_balance = round(
+        current_balance + (avg_daily_received - avg_daily_spend) * days_remaining, 2
+    )
+
+    return {
+        "month": now.strftime("%B %Y"),
+        "days_elapsed": days_elapsed,
+        "days_remaining": days_remaining,
+        "spent_so_far": spent,
+        "received_so_far": received,
+        "avg_daily_spend": round(avg_daily_spend, 2),
+        "projected_month_spend": projected_spend,
+        "projected_month_received": projected_received,
+        "current_balance": current_balance,
+        "projected_month_end_balance": projected_balance,
+    }
+
+
+async def get_current_month_spend(wallet_id) -> int:
+    """Total successful debits in the current calendar month (for budget tracking)."""
+    from datetime import datetime
+    now = datetime.utcnow()
+    month_start = datetime(now.year, now.month, 1)
+    totals = await _window_totals(wallet_id, month_start, now)
+    return totals["total_sent"]

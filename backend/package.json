@@ -26,5 +26,8 @@
     "sib-api-v3-sdk": "^8.5.0",
     "speakeasy": "^2.0.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0"
   }
 }

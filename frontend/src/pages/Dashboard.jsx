@@ -44,7 +44,8 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
 
-  const g = royalGreeting(user?.username);
+  const displayName = user?.name || user?.username;
+  const g = royalGreeting(displayName);
 
   if (loading) return (
     <div className="loading-screen">
@@ -80,11 +81,11 @@ export default function Dashboard({ token, user, navigate, onLogout }) {
       <div className="dash-header">
         <div>
           <p className="dash-greeting">{g.greeting}</p>
-          <h2 className="dash-name">{user?.username}</h2>
+          <h2 className="dash-name">{g.first}</h2>
         </div>
         <div className="dash-avatar" onClick={() => navigate("settings")}>
           <span className="dash-avatar-crown">♛</span>
-          {user?.username?.[0]?.toUpperCase()}
+          {displayName?.[0]?.toUpperCase()}
         </div>
       </div>
 

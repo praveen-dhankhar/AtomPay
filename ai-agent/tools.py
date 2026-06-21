@@ -5,7 +5,6 @@ that the LLM can use to answer user questions.
 """
 
 import json
-import asyncio
 from langchain_core.tools import tool
 
 
@@ -25,6 +24,7 @@ async def check_balance(user_id: str) -> str:
         return "Wallet not found. The user may not have set up their wallet yet."
 
     return json.dumps({
+        "name": user.get("name", "") if user else "",
         "username": user.get("username", "Unknown") if user else "Unknown",
         "balance": wallet.get("balance", 0),
         "currency": wallet.get("currency", "INR"),
@@ -171,6 +171,7 @@ async def get_account_info(user_id: str) -> str:
     wallet = await get_wallet_by_user_id(user_id)
 
     return json.dumps({
+        "name": user.get("name", ""),
         "username": user.get("username", ""),
         "email": user.get("email", ""),
         "active": user.get("active", False),
@@ -190,7 +191,9 @@ async def get_expense_tips(user_id: str, category: str = "general") -> str:
 
     Args:
         user_id: The user's ID
-        category: Tip category — 'general', 'budgeting', 'saving', 'investing', 'daily_habits'
+        category: Tip category — 'general', 'budgeting', 'saving', 'daily_habits'.
+                  NOTE: AtomPay does NOT offer investing/SIPs/mutual funds, so there is
+                  deliberately no 'investing' category. Never suggest AtomPay investment products.
     """
     from db import get_wallet_by_user_id, get_spending_aggregation, get_daily_limit_usage
 
@@ -228,13 +231,6 @@ async def get_expense_tips(user_id: str, category: str = "general") -> str:
                 "Automate your savings with recurring transfers",
                 "Set specific savings goals with deadlines (vacation, gadget, etc.)",
             ],
-            "investing": [
-                "Start SIPs even with small amounts (₹500/month) for long-term wealth",
-                "Diversify: don't put all money in one instrument",
-                "Understand the power of compound interest — start early",
-                "Keep 3-6 months expenses liquid, invest the rest",
-                "Learn about index funds for low-cost, passive investing",
-            ],
             "daily_habits": [
                 "Cook at home more often — eating out can be 3-5x more expensive",
                 "Use public transport or carpooling to reduce commute costs",
@@ -248,6 +244,210 @@ async def get_expense_tips(user_id: str, category: str = "general") -> str:
     return json.dumps(context)
 
 
+# ── Tool 8: AtomPay Knowledge Base (anti-hallucination grounding) ──
+
+# Authoritative, hand-curated facts about AtomPay. The agent MUST use this as
+# the single source of truth for product questions instead of guessing.
+ATOMPAY_KNOWLEDGE = {
+    "scope": (
+        "AtomPay is strictly a digital wallet and peer-to-peer payment app. "
+        "Users hold an INR wallet balance and send/receive money to other AtomPay "
+        "users by username or QR code."
+    ),
+    "supported_features": [
+        "Wallet balance and wallet status (Active/Frozen)",
+        "Sending money to another AtomPay user by @username or QR code",
+        "Receiving money via your QR code / username",
+        "Transaction history with search and filters",
+        "Spending analytics, insights and a daily-limit monitor",
+        "AI assistant for budgeting and saving guidance",
+    ],
+    "unsupported_features": [
+        "Investments, mutual funds, SIPs, stocks or trading",
+        "Loans, EMIs, overdrafts, credit cards or 'buy now pay later'",
+        "Fixed deposits, savings accounts with interest, or insurance",
+        "Bill payments, recharges, or merchant card processing",
+        "International transfers or currencies other than INR",
+    ],
+    "limits_and_rules": [
+        "Daily transfer limit is Rs 1,00,000 per user (rolling 24 hours).",
+        "Per-transaction amount must be between Rs 1 and Rs 1,00,000.",
+        "Only INR is supported.",
+        "The AI assistant can READ data only — it cannot send money or change the account.",
+    ],
+    "security": [
+        "Login uses email + password + a 6-digit OTP (valid 60 seconds).",
+        "Transfers are protected by a PIN.",
+        "The assistant never reveals PINs, passwords, OTPs or internal IDs.",
+    ],
+}
+
+
+@tool
+async def get_atompay_info(topic: str = "all") -> str:
+    """Get AUTHORITATIVE facts about what AtomPay is and does. ALWAYS use this
+    before answering any question about AtomPay's features, scope, limits, rules,
+    or whether something is supported (e.g. SIPs, loans, investments). Never guess
+    about the product — only state what this tool returns.
+
+    Args:
+        topic: One of 'all', 'scope', 'supported_features', 'unsupported_features',
+               'limits_and_rules', 'security'.
+    """
+    if topic and topic != "all" and topic in ATOMPAY_KNOWLEDGE:
+        return json.dumps({topic: ATOMPAY_KNOWLEDGE[topic]})
+    return json.dumps(ATOMPAY_KNOWLEDGE)
+
+
+# ── Tool 9: Month-over-month comparison ──
+
+@tool
+async def compare_spending_periods(user_id: str, days: int = 30) -> str:
+    """Compare the user's spending in the most recent period against the period
+    immediately before it (e.g. this month vs last month). Use this for trends,
+    'am I spending more than before', or month-over-month questions.
+
+    Args:
+        user_id: The user's ID
+        days: Length of each period in days (default 30)
+    """
+    from db import get_wallet_by_user_id, compare_periods
+
+    wallet = await get_wallet_by_user_id(user_id)
+    if not wallet:
+        return "Wallet not found."
+    return json.dumps(await compare_periods(wallet["_id"], min(max(days, 1), 90)))
+
+
+# ── Tool 10: Recurring / subscription detection ──
+
+@tool
+async def find_recurring_payments(user_id: str, days: int = 90) -> str:
+    """Detect payees the user pays repeatedly — likely subscriptions or regular
+    transfers — with their cadence (weekly/monthly) and estimated monthly cost.
+    Use this when the user asks about subscriptions, recurring payments, or
+    where their money regularly goes.
+
+    Args:
+        user_id: The user's ID
+        days: Lookback window in days (default 90)
+    """
+    from db import get_wallet_by_user_id, detect_recurring_payments
+
+    wallet = await get_wallet_by_user_id(user_id)
+    if not wallet:
+        return "Wallet not found."
+    return json.dumps(await detect_recurring_payments(wallet["_id"], min(max(days, 30), 180)))
+
+
+# ── Tool 11: Cashflow forecast ──
+
+@tool
+async def forecast_my_cashflow(user_id: str) -> str:
+    """Project the user's spending and wallet balance for the rest of the current
+    calendar month based on their pace so far. Use this for 'how much will I spend
+    this month', 'will I run low', or forecasting questions.
+    """
+    from db import get_wallet_by_user_id, forecast_cashflow
+
+    wallet = await get_wallet_by_user_id(user_id)
+    if not wallet:
+        return "Wallet not found."
+    return json.dumps(await forecast_cashflow(wallet["_id"]))
+
+
+# ── Tool 12: Budget status ──
+
+@tool
+async def check_budget_status(user_id: str) -> str:
+    """Check the user's progress against the monthly spending budget they set.
+    Use this when the user asks about their budget, whether they're on track, or
+    how much budget is left. If no budget is set, tell them they can set one.
+    """
+    from db import get_wallet_by_user_id, get_current_month_spend, forecast_cashflow
+    import memory
+
+    mem = memory.get_memory(user_id)
+    budget = mem.get("monthly_budget")
+
+    wallet = await get_wallet_by_user_id(user_id)
+    if not wallet:
+        return "Wallet not found."
+
+    spent = await get_current_month_spend(wallet["_id"])
+    fc = await forecast_cashflow(wallet["_id"])
+
+    if not budget:
+        return json.dumps({
+            "budget_set": False,
+            "spent_this_month": spent,
+            "projected_month_spend": fc["projected_month_spend"],
+            "hint": "No monthly budget set. Ask the user if they'd like to set one.",
+        })
+
+    return json.dumps({
+        "budget_set": True,
+        "monthly_budget": budget,
+        "spent_this_month": spent,
+        "remaining": round(budget - spent, 2),
+        "percentage_used": round((spent / budget) * 100, 1) if budget else 0,
+        "projected_month_spend": fc["projected_month_spend"],
+        "on_track": fc["projected_month_spend"] <= budget,
+    })
+
+
+# ── Tool 13: Remember a fact about the user (short-term memory) ──
+
+@tool
+async def remember_about_user(user_id: str, fact: str, preferred_name: str = "") -> str:
+    """Save a short, salient fact about the user so you can personalise future
+    replies in this session (e.g. "saving for a bike", "prefers Hindi"). Also use
+    this to record the name the user wants to be called via preferred_name.
+    Keep facts short and non-sensitive. Never store PINs, passwords or OTPs.
+
+    Args:
+        user_id: The user's ID
+        fact: A short fact to remember (optional if only setting a name)
+        preferred_name: The name the user wants to be called (optional)
+    """
+    import memory
+
+    if preferred_name.strip():
+        memory.set_preferred_name(user_id, preferred_name)
+    if fact.strip():
+        memory.add_note(user_id, fact)
+    return json.dumps({"status": "remembered", "memory": memory.get_memory(user_id)})
+
+
+@tool
+async def set_my_budget(user_id: str, monthly_budget: float) -> str:
+    """Set the user's monthly spending budget (in INR). Use this when the user
+    says they want a budget like "set my monthly budget to 20000".
+
+    Args:
+        user_id: The user's ID
+        monthly_budget: The monthly budget amount in INR
+    """
+    import memory
+    memory.set_monthly_budget(user_id, monthly_budget)
+    return json.dumps({"status": "budget_set", "monthly_budget": monthly_budget})
+
+
+@tool
+async def set_my_savings_goal(user_id: str, label: str, target: float) -> str:
+    """Set a savings goal for the user. Use when the user states a goal like
+    "I want to save 50000 for a trip".
+
+    Args:
+        user_id: The user's ID
+        label: Short label for the goal (e.g. "Goa trip")
+        target: Target amount in INR
+    """
+    import memory
+    memory.set_savings_goal(user_id, label, target)
+    return json.dumps({"status": "goal_set", "label": label, "target": target})
+
+
 # ── Export all tools ──
 
 ALL_TOOLS = [
@@ -258,4 +458,12 @@ ALL_TOOLS = [
     search_transactions,
     get_account_info,
     get_expense_tips,
+    get_atompay_info,
+    compare_spending_periods,
+    find_recurring_payments,
+    forecast_my_cashflow,
+    check_budget_status,
+    remember_about_user,
+    set_my_budget,
+    set_my_savings_goal,
 ]

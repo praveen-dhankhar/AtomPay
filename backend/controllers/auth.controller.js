@@ -76,7 +76,7 @@ exports.signup = async (req, res) => {
             msg: "Signup Successful with signup bonus of ₹5000",
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
-            user: { id: newUser._id, username: username }
+            user: { id: newUser._id, name: name, username: username }
         });
 
     } catch (err) {
@@ -109,7 +109,7 @@ exports.login = async (req, res) => {
             msg: "Login successful",
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
-            user: { id: user._id, username: user.username, role: user.role }
+            user: { id: user._id, name: user.name, username: user.username, role: user.role }
         });
     } catch (err) {
         console.log(err);
@@ -325,6 +325,7 @@ exports.verifyOTP = async (req, res) => {
             refreshToken: tokens.refreshToken,
             user: {
                 id: user._id,
+                name: user.name,
                 username: user.username,
                 role: user.role
             }

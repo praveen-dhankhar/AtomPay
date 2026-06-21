@@ -114,6 +114,7 @@ exports.transferMoney = async (req, res) => {
         ])
         const totalSent = result[0]?.totalSent || 0;
         if (totalSent + amount > 100000) {
+            console.warn(`[GUARD] ⚠️  Velocity cap — @${sender.username} already sent ${totalSent} in 24h; +${amount} rejected`);
             return res.status(400).json({
                 msg: "You cannot send more than ₹1,00,000 in 24 hours"
             })
@@ -133,6 +134,7 @@ exports.transferMoney = async (req, res) => {
         }
         if (senderWalletTx.balance < amount) {
             await session.abortTransaction();
+            console.warn(`[GUARD] ⚠️  Insufficient balance inside txn — @${sender.username}; rolled back`);
             return res.status(400).json({ msg: "Insufficient balance" });
         }
         tx = new Transaction({
@@ -153,6 +155,7 @@ exports.transferMoney = async (req, res) => {
         tx.status = "success";
         await tx.save({ session });
         await session.commitTransaction();
+        console.log(`[OK] ✅ Transfer committed — @${sender.username} → @${receiver.username} ${amount} (txn ${tx.transactionId})`);
 
         // Invalidate cached balance + history for BOTH parties — only AFTER the
         // 2-phase commit has resolved, so we never serve stale financial data.
@@ -186,7 +189,17 @@ exports.transferMoney = async (req, res) => {
         })
     }
     catch (err) {
-        console.log(err);
+        // A concurrent transfer that loses the race to write the same wallet
+        // document surfaces as a MongoDB write-conflict / transient txn error.
+        const isRace = !!err && (
+            (Array.isArray(err.errorLabels) && err.errorLabels.includes("TransientTransactionError")) ||
+            err.code === 112 || /writeconflict/i.test(err.message || "")
+        );
+        if (isRace) {
+            console.warn(`[GUARD] 🛡️  Race blocked — concurrent transfer write-conflict for user=${senderId}; atomic rollback, no double-spend`);
+        } else {
+            console.log(err);
+        }
         if (session) {
             try { await session.abortTransaction(); } catch (_) { /* already aborted */ }
         }

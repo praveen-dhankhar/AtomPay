@@ -80,14 +80,15 @@ const TIPS_DATA = {
 // ── Quick Suggestion Chips ──
 const SUGGESTIONS = [
   "What's my balance?",
-  "Show spending analysis",
+  "Am I spending more than last month?",
+  "What subscriptions do I have?",
+  "Forecast my spending this month",
+  "Set my monthly budget to 20000",
   "How much daily limit left?",
-  "Last 5 transactions",
   "Give me saving tips",
-  "Who do I send most money to?",
 ];
 
-export default function AiChat({ token, user }) {
+export default function AiChat({ token, user, navigate }) {
   const [activeTab, setActiveTab] = useState("chat");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -95,14 +96,26 @@ export default function AiChat({ token, user }) {
   const [agentOnline, setAgentOnline] = useState(true);
   const [tipCategory, setTipCategory] = useState("general");
 
-  // Expense tracker state
-  const [expenseData, setExpenseData] = useState(null);
+  // Analytics state — one deterministic bundle powers Expenses + Insights
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(false);
   const [expensePeriod, setExpensePeriod] = useState(30);
-  const [expenseLoading, setExpenseLoading] = useState(false);
 
-  // Insights state
-  const [insightsData, setInsightsData] = useState(null);
-  const [insightsLoading, setInsightsLoading] = useState(false);
+  // Budget setter
+  const [budgetInput, setBudgetInput] = useState("");
+  const [savingBudget, setSavingBudget] = useState(false);
+
+  // Derived slices for the existing UI
+  const expenseData = analytics?.spending || null;
+  const insightsData = analytics
+    ? {
+        balance: analytics.balance || 0,
+        walletStatus: analytics.wallet_status || "Active",
+        currency: analytics.currency || "INR",
+        dailyLimit: analytics.daily_limit || null,
+      }
+    : null;
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
@@ -125,76 +138,53 @@ export default function AiChat({ token, user }) {
     checkHealth();
   }, []);
 
-  // Load expense data when tab is opened
+  // Load analytics when an analytics tab is opened (once)
   useEffect(() => {
-    if (activeTab === "expenses" && !expenseData) {
-      loadExpenseData();
-    }
-    if (activeTab === "insights" && !insightsData) {
-      loadInsightsData();
+    if ((activeTab === "expenses" || activeTab === "insights") && !analytics) {
+      loadAnalytics();
     }
   }, [activeTab]);
 
-  // Reload expense data when period changes
+  // Reload analytics when the period changes (while viewing an analytics tab)
   useEffect(() => {
-    if (activeTab === "expenses") {
-      loadExpenseData();
+    if (activeTab === "expenses" || activeTab === "insights") {
+      loadAnalytics();
     }
   }, [expensePeriod]);
 
-  const loadExpenseData = async () => {
-    setExpenseLoading(true);
+  // Single source of truth — deterministic numbers straight from the backend.
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    setAnalyticsError(false);
     try {
-      const msg = `Analyze my spending for the last ${expensePeriod} days. Give me the raw data in this exact JSON format and nothing else: {"total_sent": number, "sent_count": number, "total_received": number, "received_count": number, "net_flow": number, "top_recipients": [{"username": string, "amount": number, "count": number}], "daily_breakdown": [{"date": string, "amount": number, "count": number}]}`;
-      const res = await api("/agent/chat", {
+      const res = await api("/agent/analytics", {
         method: "POST",
-        body: JSON.stringify({ message: msg }),
+        body: JSON.stringify({ period_days: expensePeriod }),
       }, token);
-
-      // Try to parse JSON from response
-      try {
-        const jsonMatch = res.response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          setExpenseData(JSON.parse(jsonMatch[0]));
-        }
-      } catch {
-        // If we can't parse, ask again with simpler query
-        setExpenseData(null);
-      }
+      setAnalytics(res);
+      if (res?.budget?.monthly_budget) setBudgetInput(String(res.budget.monthly_budget));
     } catch (err) {
-      console.error("Failed to load expense data:", err);
+      console.error("Failed to load analytics:", err);
+      setAnalyticsError(true);
     } finally {
-      setExpenseLoading(false);
+      setAnalyticsLoading(false);
     }
   };
 
-  const loadInsightsData = async () => {
-    setInsightsLoading(true);
+  const saveBudget = async () => {
+    const amount = Number(budgetInput);
+    if (!amount || amount <= 0) return;
+    setSavingBudget(true);
     try {
-      const [balRes, limitRes] = await Promise.all([
-        api("/wallet/balance", {}, token),
-        api("/agent/chat", {
-          method: "POST",
-          body: JSON.stringify({ message: "Check my daily limit usage. Reply with ONLY this JSON: {\"daily_limit\": number, \"used\": number, \"remaining\": number, \"percentage_used\": number, \"transaction_count_today\": number}" }),
-        }, token),
-      ]);
-
-      let limitData = null;
-      try {
-        const jsonMatch = limitRes.response.match(/\{[\s\S]*\}/);
-        if (jsonMatch) limitData = JSON.parse(jsonMatch[0]);
-      } catch { /* ignore */ }
-
-      setInsightsData({
-        balance: balRes.balance || 0,
-        walletStatus: balRes.status || "Active",
-        currency: balRes.currency || "INR",
-        dailyLimit: limitData,
-      });
+      await api("/agent/memory/budget", {
+        method: "POST",
+        body: JSON.stringify({ monthly_budget: amount }),
+      }, token);
+      await loadAnalytics();
     } catch (err) {
-      console.error("Failed to load insights:", err);
+      console.error("Failed to set budget:", err);
     } finally {
-      setInsightsLoading(false);
+      setSavingBudget(false);
     }
   };
 
@@ -220,7 +210,7 @@ export default function AiChat({ token, user }) {
     } catch (err) {
       const errorMsg = {
         role: "assistant",
-        content: "⚠️ Sorry, I couldn't process your request. The AI Agent might be offline. Please try again later.",
+        content: "⚠️ Sorry, I couldn't process your request. AtomAI might be offline. Please try again later.",
         time: new Date()
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -270,7 +260,8 @@ export default function AiChat({ token, user }) {
     { id: "insights", icon: "🔍", label: "Insights" },
   ];
 
-  const g = royalGreeting(user?.username);
+  const displayName = user?.name || user?.username;
+  const g = royalGreeting(displayName);
 
   return (
     <div className="ai-page">
@@ -279,7 +270,7 @@ export default function AiChat({ token, user }) {
         <div className="ai-header-left">
           <div className="ai-logo">✦</div>
           <div className="ai-header-title">
-            <h2>AtomPay AI</h2>
+            <h2>AtomAI</h2>
             <span>Royal Advisor to the Treasury</span>
           </div>
         </div>
@@ -317,7 +308,7 @@ export default function AiChat({ token, user }) {
             {messages.length === 0 && !loading ? (
               <div className="ai-welcome">
                 <div className="ai-welcome-icon">✦</div>
-                <h3>{g.greeting}, {user?.username}</h3>
+                <h3>{g.greeting}, {g.first}</h3>
                 <p>I'm your AtomPay assistant. Ask me anything about your wallet, transactions, spending patterns, or money-saving tips.</p>
                 <div className="ai-caps-grid">
                   {[
@@ -348,7 +339,7 @@ export default function AiChat({ token, user }) {
                 {messages.map((msg, i) => (
                   <div key={i} className={`ai-msg ${msg.role}`}>
                     <div className="ai-msg-avatar">
-                      {msg.role === "assistant" ? "✦" : user?.username?.[0]?.toUpperCase() || "U"}
+                      {msg.role === "assistant" ? "✦" : displayName?.[0]?.toUpperCase() || "U"}
                     </div>
                     <div>
                       <div
@@ -427,10 +418,36 @@ export default function AiChat({ token, user }) {
             ))}
           </div>
 
-          {expenseLoading ? (
+          {analyticsLoading ? (
             <div className="ai-loading"><AtomLoader size={56} label="Crunching your numbers…" /></div>
           ) : expenseData ? (
             <>
+              {/* Month-over-month trend */}
+              {analytics?.comparison && (
+                <div className="ai-trend-card">
+                  <div className="ai-section-title">📈 Trend vs previous {expensePeriod} days</div>
+                  <div className="ai-trend-grid">
+                    {[
+                      { label: "Spent", pct: analytics.comparison.change.sent_pct, value: analytics.comparison.current.total_sent, lowerIsBetter: true },
+                      { label: "Received", pct: analytics.comparison.change.received_pct, value: analytics.comparison.current.total_received, lowerIsBetter: false },
+                      { label: "Net flow", pct: analytics.comparison.change.net_pct, value: analytics.comparison.current.net_flow, lowerIsBetter: false },
+                    ].map((s, i) => {
+                      const up = (s.pct ?? 0) > 0;
+                      const good = s.pct == null ? null : (s.lowerIsBetter ? !up : up);
+                      return (
+                        <div key={i} className="ai-trend-stat">
+                          <div className="ai-trend-label">{s.label}</div>
+                          <div className="ai-trend-value">{formatAmount(Math.abs(s.value || 0))}</div>
+                          <div className={`ai-trend-delta ${good === null ? "" : good ? "good" : "bad"}`}>
+                            {s.pct == null ? "— new" : `${up ? "▲" : "▼"} ${Math.abs(s.pct)}%`}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Summary Cards */}
               <div className="ai-expense-summary">
                 <div className="ai-expense-card">
@@ -498,12 +515,39 @@ export default function AiChat({ token, user }) {
                   </div>
                 </div>
               )}
+
+              {/* Recurring payments / subscriptions */}
+              {analytics?.recurring?.recurring?.length > 0 && (
+                <div className="ai-top-recipients">
+                  <div className="ai-section-title">
+                    🔁 Recurring payments
+                    {analytics.recurring.estimated_monthly_recurring > 0 && (
+                      <span className="ai-section-sub">
+                        ~{formatAmount(analytics.recurring.estimated_monthly_recurring)}/mo
+                      </span>
+                    )}
+                  </div>
+                  {analytics.recurring.recurring.slice(0, 8).map((r, i) => (
+                    <div key={i} className="ai-recipient-item">
+                      <div className="ai-recipient-rank">🔁</div>
+                      <div className="ai-recipient-info">
+                        <div className="ai-recipient-name">@{r.username}</div>
+                        <div className="ai-recipient-count">
+                          {r.count}× · <span className="ai-recur-badge">{r.cadence_label}</span>
+                          {r.cadence_days ? ` ~${r.cadence_days}d` : ""}
+                        </div>
+                      </div>
+                      <div className="ai-recipient-amount">{formatAmount(r.avg_amount)}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <div className="ai-empty-state">
               <div className="empty-icon">📊</div>
-              <p>No expense data available yet. Start making transactions to see your spending analysis here!</p>
-              <button className="empty-btn" onClick={loadExpenseData}>Retry Loading</button>
+              <p>{analyticsError ? "Couldn't load your analytics. AtomAI might be offline." : "No expense data available yet. Start making transactions to see your spending analysis here!"}</p>
+              <button className="empty-btn" onClick={loadAnalytics}>Retry Loading</button>
             </div>
           )}
           <div className="ai-bottom-pad" />
@@ -548,7 +592,7 @@ export default function AiChat({ token, user }) {
       {/* ════════════════ INSIGHTS TAB ════════════════ */}
       {activeTab === "insights" && (
         <div className="ai-insights-tab">
-          {insightsLoading ? (
+          {analyticsLoading ? (
             <div className="ai-loading"><AtomLoader size={56} label="Crunching your numbers…" /></div>
           ) : insightsData ? (
             <>
@@ -595,6 +639,94 @@ export default function AiChat({ token, user }) {
                 </div>
               )}
 
+              {/* Cashflow Forecast Card */}
+              {analytics?.forecast && (
+                <div className="ai-insight-card">
+                  <div className="ai-insight-header">
+                    <span className="ai-insight-icon">🔮</span>
+                    <span className="ai-insight-title">{analytics.forecast.month} forecast</span>
+                  </div>
+                  <div className="ai-insight-value" style={{ color: "var(--gold-3)" }}>
+                    {formatAmount(analytics.forecast.projected_month_spend)}
+                    <span style={{ fontSize: 14, color: "var(--text2)" }}> projected spend</span>
+                  </div>
+                  <div className="ai-insight-label">
+                    {formatAmount(analytics.forecast.spent_so_far)} spent in {analytics.forecast.days_elapsed} days
+                    · {analytics.forecast.days_remaining} days left
+                  </div>
+                  <div className="ai-forecast-row">
+                    <span>Avg / day</span>
+                    <strong>{formatAmount(analytics.forecast.avg_daily_spend)}</strong>
+                  </div>
+                  <div className="ai-forecast-row">
+                    <span>Projected month-end balance</span>
+                    <strong style={{ color: analytics.forecast.projected_month_end_balance >= 0 ? "var(--green)" : "var(--red)" }}>
+                      {formatAmount(analytics.forecast.projected_month_end_balance)}
+                    </strong>
+                  </div>
+                </div>
+              )}
+
+              {/* Budget Card */}
+              <div className="ai-insight-card">
+                <div className="ai-insight-header">
+                  <span className="ai-insight-icon">🎯</span>
+                  <span className="ai-insight-title">Monthly Budget</span>
+                </div>
+                {analytics?.budget ? (
+                  <>
+                    <div className="ai-insight-value" style={{
+                      color: analytics.budget.on_track ? "var(--green)" : "var(--red)"
+                    }}>
+                      {formatAmount(analytics.budget.spent_this_month)}
+                      <span style={{ fontSize: 14, color: "var(--text2)" }}> / {formatAmount(analytics.budget.monthly_budget)}</span>
+                    </div>
+                    <div className="ai-insight-label">
+                      {formatAmount(Math.max(analytics.budget.remaining, 0))} remaining ·
+                      {analytics.budget.on_track ? " on track ✅" : " over pace ⚠️"}
+                    </div>
+                    <div className="ai-insight-bar">
+                      <div className="ai-insight-bar-fill" style={{
+                        width: `${Math.min(analytics.budget.percentage_used || 0, 100)}%`,
+                        background: (analytics.budget.percentage_used || 0) > 100
+                          ? "linear-gradient(90deg, var(--red), #FF5252)"
+                          : "var(--gold-grad)"
+                      }} />
+                    </div>
+                  </>
+                ) : (
+                  <div className="ai-insight-label" style={{ marginTop: 4 }}>
+                    Set a monthly spending budget to track your progress.
+                  </div>
+                )}
+                <div className="ai-budget-setter">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    placeholder="e.g. 20000"
+                    value={budgetInput}
+                    onChange={(e) => setBudgetInput(e.target.value)}
+                  />
+                  <button onClick={saveBudget} disabled={savingBudget || !Number(budgetInput)}>
+                    {savingBudget ? "Saving…" : (analytics?.budget ? "Update" : "Set budget")}
+                  </button>
+                </div>
+              </div>
+
+              {/* Savings Goal Card */}
+              {analytics?.savings_goal && (
+                <div className="ai-insight-card">
+                  <div className="ai-insight-header">
+                    <span className="ai-insight-icon">🏆</span>
+                    <span className="ai-insight-title">Savings Goal — {analytics.savings_goal.label}</span>
+                  </div>
+                  <div className="ai-insight-value" style={{ color: "var(--gold-3)" }}>
+                    {formatAmount(analytics.savings_goal.target)}
+                  </div>
+                  <div className="ai-insight-label">Target you're saving towards</div>
+                </div>
+              )}
+
               {/* Quick Actions */}
               <div className="ai-insight-card">
                 <div className="ai-insight-header">
@@ -604,9 +736,10 @@ export default function AiChat({ token, user }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
                   {[
                     { label: "Full spending analysis", query: "Give me a detailed spending analysis for this month" },
-                    { label: "Weekly comparison", query: "Compare my spending this week vs last week" },
-                    { label: "Savings potential", query: "Based on my spending patterns, how much could I save?" },
-                    { label: "Transaction patterns", query: "What patterns do you see in my transactions?" },
+                    { label: "Am I spending more than last month?", query: "Compare my spending this month vs the previous month" },
+                    { label: "Find my recurring payments", query: "What recurring payments or subscriptions do I have?" },
+                    { label: "Forecast this month", query: "Forecast my spending and month-end balance" },
+                    { label: "Am I on budget?", query: "Am I on track with my monthly budget?" },
                   ].map((action, i) => (
                     <button
                       key={i}
@@ -626,15 +759,15 @@ export default function AiChat({ token, user }) {
           ) : (
             <div className="ai-empty-state">
               <div className="empty-icon">🔍</div>
-              <p>Unable to load insights. Make sure the AI Agent is running.</p>
-              <button className="empty-btn" onClick={loadInsightsData}>Retry</button>
+              <p>Unable to load insights. Make sure AtomAI is running.</p>
+              <button className="empty-btn" onClick={loadAnalytics}>Retry</button>
             </div>
           )}
           <div className="ai-bottom-pad" />
         </div>
       )}
 
-      <BottomNav active="ai" navigate={() => {}} />
+      <BottomNav active="ai" navigate={navigate} />
     </div>
   );
 }

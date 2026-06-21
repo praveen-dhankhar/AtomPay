@@ -1014,3 +1014,116 @@
 .ai-status-dot { box-shadow: 0 0 8px currentColor; }
 
 .ai-welcome h3 { background: none; -webkit-text-fill-color: currentColor; color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════
+   📈 ENHANCED ANALYTICS — trends, recurring, forecast, budget
+   ═══════════════════════════════════════════════════════ */
+
+.ai-section-sub {
+  float: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold-2);
+}
+
+/* Month-over-month trend */
+.ai-trend-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 16px);
+  padding: 16px;
+  margin: 0 16px 14px;
+}
+.ai-trend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+.ai-trend-stat {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 10px;
+  text-align: center;
+  min-width: 0;
+}
+.ai-trend-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-2);
+}
+.ai-trend-value {
+  font-size: clamp(14px, 4.4vw, 18px);
+  font-weight: 800;
+  margin: 4px 0;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ai-trend-delta {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.ai-trend-delta.good { color: var(--green); }
+.ai-trend-delta.bad { color: var(--red); }
+
+/* Recurring payment cadence badge */
+.ai-recur-badge {
+  display: inline-block;
+  background: var(--gold-soft);
+  color: var(--gold-2);
+  border-radius: 6px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+/* Forecast rows */
+.ai-forecast-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.ai-forecast-row strong { color: var(--text); font-size: 14px; }
+
+/* Budget setter */
+.ai-budget-setter {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ai-budget-setter input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+}
+.ai-budget-setter input:focus { border-color: var(--gold-2); }
+.ai-budget-setter button {
+  background: var(--gold-grad);
+  color: #3D2E05;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ai-budget-setter button:disabled { opacity: 0.5; cursor: not-allowed; }
