@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1640" height="1180" viewBox="0 0 1640 1180" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="1640" height="1180" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="8" refY="5" orient="auto">
+      <polygon points="0,0 9,5 0,10" fill="#E8821E"/>
+    </marker>
+    <marker id="arrowBack" markerWidth="11" markerHeight="11" refX="8" refY="5" orient="auto">
+      <polygon points="0,0 9,5 0,10" fill="#C66A12"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="820" y="46" text-anchor="middle" font-size="32" font-weight="700" fill="#D9731A">AtomPay — Request Flow (Money Transfer)</text>
+  <text x="820" y="74" text-anchor="middle" font-size="16" fill="#8A7A66">How a POST /api/transaction/transfer request travels through the system</text>
+
+  <!-- ===== Actor boxes ===== -->
+  <!-- Client cx140 -->
+  <rect x="55" y="96" width="170" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="140" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">Client</text>
+  <text x="140" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">React SPA (browser)</text>
+  <!-- Gateway cx440 -->
+  <rect x="345" y="96" width="190" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="440" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">API Gateway</text>
+  <text x="440" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">Express middleware</text>
+  <!-- Controller cx745 -->
+  <rect x="650" y="96" width="190" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="745" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">Transfer Controller</text>
+  <text x="745" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">ACID engine</text>
+  <!-- MongoDB cx1035 -->
+  <rect x="955" y="96" width="160" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="1035" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">MongoDB</text>
+  <text x="1035" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">replica set</text>
+  <!-- Redis cx1255 -->
+  <rect x="1180" y="96" width="150" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="1255" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">Redis</text>
+  <text x="1255" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">cache · limits</text>
+  <!-- Worker cx1480 -->
+  <rect x="1390" y="96" width="190" height="56" rx="10" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="1485" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3A2A18">BullMQ Worker</text>
+  <text x="1485" y="141" text-anchor="middle" font-size="11.5" fill="#8A7A66">async jobs</text>
+
+  <!-- ===== Lifelines ===== -->
+  <line x1="140" y1="152" x2="140" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="440" y1="152" x2="440" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="745" y1="152" x2="745" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="1035" y1="152" x2="1035" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="1255" y1="152" x2="1255" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <line x1="1485" y1="152" x2="1485" y2="1000" stroke="#E8C9A0" stroke-width="1.5" stroke-dasharray="5 5"/>
+
+  <!-- ===== Messages (top to bottom) ===== -->
+
+  <!-- 1 Client -> Gateway -->
+  <text x="150" y="196" font-size="13.5" fill="#3A2A18">① POST /api/transaction/transfer — Bearer JWT + Idempotency-Key</text>
+  <line x1="140" y1="204" x2="436" y2="204" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 2 Gateway self note: CORS/headers -->
+  <rect x="318" y="228" width="244" height="30" rx="7" fill="#FDEBD0" stroke="#D9731A" stroke-width="1.5"/>
+  <text x="440" y="248" text-anchor="middle" font-size="12.5" fill="#3A2A18">② CORS + security headers + body limit</text>
+
+  <!-- 3 Gateway -> Redis: rate limit -->
+  <text x="450" y="294" font-size="13.5" fill="#3A2A18">③ Per-user rate-limit check (counter)</text>
+  <line x1="440" y1="302" x2="1251" y2="302" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 4 Gateway self note: JWT verify -->
+  <rect x="318" y="326" width="244" height="30" rx="7" fill="#FDEBD0" stroke="#D9731A" stroke-width="1.5"/>
+  <text x="440" y="346" text-anchor="middle" font-size="12.5" fill="#3A2A18">④ JWT verify → req.user.id</text>
+
+  <!-- 5 Gateway self note: Zod validate -->
+  <rect x="318" y="368" width="244" height="30" rx="7" fill="#FDEBD0" stroke="#D9731A" stroke-width="1.5"/>
+  <text x="440" y="388" text-anchor="middle" font-size="12.5" fill="#3A2A18">⑤ Zod validate: amount, pin, receiver</text>
+
+  <!-- 6 Gateway -> Redis: idempotency SETNX -->
+  <text x="450" y="434" font-size="13.5" fill="#3A2A18">⑥ Idempotency SETNX (Idempotency-Key) — exactly-once</text>
+  <line x1="440" y1="442" x2="1251" y2="442" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 7 Gateway -> Controller -->
+  <text x="455" y="482" font-size="13.5" fill="#3A2A18">⑦ forward to controller</text>
+  <line x1="440" y1="490" x2="741" y2="490" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 8 Controller -> Mongo: load wallets + PIN -->
+  <text x="755" y="530" font-size="13.5" fill="#3A2A18">⑧ load sender/receiver wallet · bcrypt PIN check</text>
+  <line x1="745" y1="538" x2="1031" y2="538" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 9 Controller -> Mongo: velocity cap -->
+  <text x="755" y="578" font-size="13.5" fill="#3A2A18">⑨ velocity-cap aggregation (Rs 1,00,000 / 24h, compound index)</text>
+  <line x1="745" y1="586" x2="1031" y2="586" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 10 Controller -> Mongo: ACID commit -->
+  <rect x="745" y="610" width="290" height="58" rx="8" fill="#FDEBD0" stroke="#D9731A" stroke-width="2"/>
+  <text x="757" y="631" font-size="12.5" font-weight="700" fill="#D9731A">⑩ ACID multi-doc session</text>
+  <text x="757" y="649" font-size="11.5" fill="#3A2A18">start txn → debit sender, credit receiver</text>
+  <text x="757" y="664" font-size="11.5" fill="#3A2A18">double-check lock → 2-phase commit / rollback</text>
+  <line x1="745" y1="639" x2="1031" y2="639" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 11 Controller -> Redis: invalidate cache -->
+  <text x="755" y="710" font-size="13.5" fill="#3A2A18">⑪ invalidate balance + txns cache (both parties)</text>
+  <line x1="745" y1="718" x2="1251" y2="718" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 12 Controller -> Worker: enqueue -->
+  <text x="755" y="758" font-size="13.5" fill="#3A2A18">⑫ enqueue email + audit jobs (fire-and-forget)</text>
+  <line x1="745" y1="766" x2="1481" y2="766" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- 13 Controller -> Client: 200 OK (return) -->
+  <text x="150" y="806" font-size="13.5" font-weight="600" fill="#C66A12">⑬ 200 OK { msg: "Money sent successfully" }</text>
+  <line x1="745" y1="814" x2="144" y2="814" stroke="#C66A12" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#arrowBack)"/>
+
+  <!-- 14 Worker async -> email -->
+  <text x="1130" y="854" font-size="13.5" fill="#3A2A18">⑭ worker consumes job → sends email (async, off request path)</text>
+  <line x1="1485" y1="862" x2="1485" y2="906" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <rect x="1390" y="908" width="190" height="44" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="1485" y="935" text-anchor="middle" font-size="13" font-weight="600" fill="#3A2A18">Email provider (Resend/SMTP)</text>
+
+  <!-- ===== Other flows footer ===== -->
+  <rect x="55" y="1010" width="1530" height="130" rx="14" fill="#FFFDFB" stroke="#F0A24B" stroke-width="1.5"/>
+  <text x="78" y="1040" font-size="15" font-weight="700" fill="#D9731A">Other request paths</text>
+  <text x="78" y="1070" font-size="13.5" fill="#3A2A18"><tspan font-weight="700" fill="#D9731A">Balance read (GET /wallet/balance):</tspan>  Client → JWT auth → Wallet Controller → Redis cache HIT → 200 OK  ·  on MISS → MongoDB → warm cache → 200 OK</text>
+  <text x="78" y="1098" font-size="13.5" fill="#3A2A18"><tspan font-weight="700" fill="#D9731A">AtomAI chat (POST /agent/chat):</tspan>  Client → Node proxy (JWT, injects userId) → FastAPI ReAct agent → tools query MongoDB via Motor →</text>
+  <text x="78" y="1122" font-size="13.5" fill="#3A2A18">LLM (Groq Llama 3.3 70B) drafts answer → self-verification grounds every fact in tool data → reply.</text>
+</svg>

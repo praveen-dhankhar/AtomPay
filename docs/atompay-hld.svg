@@ -1,0 +1,195 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1200" viewBox="0 0 1680 1200" font-family="Segoe UI, Arial, sans-serif">
+  <!-- background -->
+  <rect x="0" y="0" width="1680" height="1200" fill="#FFFFFF"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#E8821E"/>
+    </marker>
+  </defs>
+
+  <!-- ===== Title ===== -->
+  <text x="840" y="50" text-anchor="middle" font-size="34" font-weight="700" fill="#D9731A">AtomPay — High-Level Design</text>
+  <text x="840" y="80" text-anchor="middle" font-size="17" fill="#8A7A66">Distributed fintech wallet · Node.js + MongoDB + Redis/BullMQ · AtomAI (FastAPI + LangGraph)</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 1 — FRONTEND                                            -->
+  <!-- ============================================================ -->
+  <rect x="60" y="105" width="1560" height="120" rx="14" fill="#FFF8F0" stroke="#F0A24B" stroke-width="2"/>
+  <text x="84" y="133" font-size="18" font-weight="700" fill="#D9731A">① Frontend — React SPA (Vite)</text>
+
+  <rect x="110" y="146" width="300" height="62" rx="10" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="260" y="173" text-anchor="middle" font-size="16" font-weight="600" fill="#3A2A18">Dashboard</text>
+  <text x="260" y="194" text-anchor="middle" font-size="12" fill="#8A7A66">Balance · daily-limit · recent txns</text>
+
+  <rect x="690" y="146" width="300" height="62" rx="10" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="840" y="173" text-anchor="middle" font-size="16" font-weight="600" fill="#3A2A18">Send Money / Transactions</text>
+  <text x="840" y="194" text-anchor="middle" font-size="12" fill="#8A7A66">Transfer form · history · QR</text>
+
+  <rect x="1270" y="146" width="300" height="62" rx="10" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="1420" y="173" text-anchor="middle" font-size="16" font-weight="600" fill="#3A2A18">AtomAI Chat</text>
+  <text x="1420" y="194" text-anchor="middle" font-size="12" fill="#8A7A66">Conversational finance assistant</text>
+
+  <!-- arrow FE -> Backend -->
+  <line x1="700" y1="225" x2="700" y2="272" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="715" y="255" font-size="13" fill="#8A7A66">HTTPS · REST · JWT access token</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 2 — NODE BACKEND                                        -->
+  <!-- ============================================================ -->
+  <rect x="60" y="280" width="1130" height="270" rx="14" fill="#FFF8F0" stroke="#F0A24B" stroke-width="2"/>
+  <text x="84" y="308" font-size="18" font-weight="700" fill="#D9731A">② API Gateway — Node.js + Express</text>
+
+  <!-- middleware pipeline -->
+  <text x="84" y="338" font-size="13" font-weight="600" fill="#8A7A66">Edge middleware pipeline (in order)</text>
+  <rect x="84" y="348" width="150" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="159" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">CORS + Headers</text>
+  <text x="159" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">nosniff · frame-deny</text>
+
+  <rect x="246" y="348" width="150" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="321" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">JWT Auth</text>
+  <text x="321" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">dual-token (access+refresh)</text>
+
+  <rect x="408" y="348" width="150" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="483" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">Zod Validation</text>
+  <text x="483" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">schema at API edge</text>
+
+  <rect x="570" y="348" width="160" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="650" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">IP Rate Limiter</text>
+  <text x="650" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">zero-dep · Redis counters</text>
+
+  <rect x="742" y="348" width="180" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="832" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">Idempotency (SETNX)</text>
+  <text x="832" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">exactly-once writes</text>
+
+  <rect x="934" y="348" width="170" height="46" rx="8" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="1019" y="371" text-anchor="middle" font-size="12.5" font-weight="600" fill="#3A2A18">2FA / OTP</text>
+  <text x="1019" y="386" text-anchor="middle" font-size="11" fill="#8A7A66">login + transfer PIN</text>
+
+  <!-- controllers -->
+  <text x="84" y="426" font-size="13" font-weight="600" fill="#8A7A66">Controllers</text>
+  <rect x="84" y="436" width="200" height="52" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="184" y="466" text-anchor="middle" font-size="14.5" font-weight="600" fill="#3A2A18">Auth Controller</text>
+
+  <rect x="300" y="436" width="200" height="52" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="400" y="466" text-anchor="middle" font-size="14.5" font-weight="600" fill="#3A2A18">Wallet Controller</text>
+
+  <rect x="516" y="436" width="240" height="52" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="636" y="466" text-anchor="middle" font-size="14.5" font-weight="600" fill="#3A2A18">Transaction Controller</text>
+
+  <!-- ACID note -->
+  <rect x="772" y="436" width="332" height="92" rx="9" fill="#FDEBD0" stroke="#D9731A" stroke-width="2"/>
+  <text x="938" y="458" text-anchor="middle" font-size="13.5" font-weight="700" fill="#D9731A">ACID Transfer Engine</text>
+  <text x="788" y="479" font-size="11.5" fill="#3A2A18">• MongoDB multi-document session</text>
+  <text x="788" y="496" font-size="11.5" fill="#3A2A18">• 2-phase commit + atomic rollback</text>
+  <text x="788" y="513" font-size="11.5" fill="#3A2A18">• double-check locking · idempotency FSM</text>
+
+  <!-- arrow Transaction controller -> ACID -->
+  <line x1="756" y1="462" x2="768" y2="462" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 2b — AtomAI microservice (right)                        -->
+  <!-- ============================================================ -->
+  <rect x="1210" y="280" width="410" height="270" rx="14" fill="#FFF8F0" stroke="#F0A24B" stroke-width="2"/>
+  <text x="1234" y="308" font-size="18" font-weight="700" fill="#D9731A">③ AtomAI — FastAPI microservice</text>
+
+  <rect x="1234" y="324" width="362" height="58" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="1415" y="348" text-anchor="middle" font-size="14.5" font-weight="600" fill="#3A2A18">ReAct Agent · LangChain + LangGraph</text>
+  <text x="1415" y="368" text-anchor="middle" font-size="12" fill="#8A7A66">self-verification anti-hallucination pass</text>
+
+  <rect x="1234" y="394" width="175" height="56" rx="9" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="1321" y="417" text-anchor="middle" font-size="13" font-weight="600" fill="#3A2A18">LLM Provider</text>
+  <text x="1321" y="436" text-anchor="middle" font-size="11" fill="#8A7A66">Groq Llama 3.3 70B</text>
+
+  <rect x="1421" y="394" width="175" height="56" rx="9" fill="#FFEFD9" stroke="#E8821E" stroke-width="1.5"/>
+  <text x="1508" y="417" text-anchor="middle" font-size="13" font-weight="600" fill="#3A2A18">7+ Async Tools</text>
+  <text x="1508" y="436" text-anchor="middle" font-size="11" fill="#8A7A66">balance · spend · search</text>
+
+  <rect x="1234" y="462" width="362" height="56" rx="9" fill="#FFFFFF" stroke="#E8821E" stroke-width="2"/>
+  <text x="1415" y="485" text-anchor="middle" font-size="13.5" font-weight="600" fill="#3A2A18">Motor (async MongoDB driver)</text>
+  <text x="1415" y="505" text-anchor="middle" font-size="11.5" fill="#8A7A66">aggregation pipelines · read-only</text>
+
+  <!-- arrow Backend <-> AtomAI (proxy) -->
+  <line x1="1190" y1="360" x2="1208" y2="360" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="1120" y="345" text-anchor="middle" font-size="12" fill="#8A7A66">/api/agent/*</text>
+  <text x="1120" y="378" text-anchor="middle" font-size="12" fill="#8A7A66">JWT proxy</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 3 — DATA + ASYNC                                        -->
+  <!-- ============================================================ -->
+  <rect x="60" y="610" width="1560" height="300" rx="14" fill="#FFF8F0" stroke="#F0A24B" stroke-width="2"/>
+  <text x="84" y="638" font-size="18" font-weight="700" fill="#D9731A">④ Data &amp; Async Processing</text>
+
+  <!-- MongoDB -->
+  <rect x="110" y="660" width="360" height="210" rx="12" fill="#FFFFFF" stroke="#E8821E" stroke-width="2.5"/>
+  <text x="290" y="692" text-anchor="middle" font-size="17" font-weight="700" fill="#D9731A">MongoDB (Atlas)</text>
+  <line x1="130" y1="704" x2="450" y2="704" stroke="#F0A24B" stroke-width="1"/>
+  <text x="132" y="730" font-size="13" fill="#3A2A18">• users — auth, profile</text>
+  <text x="132" y="755" font-size="13" fill="#3A2A18">• wallets — balance, status, QR</text>
+  <text x="132" y="780" font-size="13" fill="#3A2A18">• transactions — ledger</text>
+  <text x="132" y="805" font-size="13" fill="#3A2A18">• auditLogs, refreshTokens, otp</text>
+  <text x="132" y="838" font-size="12" font-style="italic" fill="#8A7A66">compound indexes · multi-doc txns</text>
+
+  <!-- Redis -->
+  <rect x="510" y="660" width="360" height="210" rx="12" fill="#FFFFFF" stroke="#E8821E" stroke-width="2.5"/>
+  <text x="690" y="692" text-anchor="middle" font-size="17" font-weight="700" fill="#D9731A">Redis</text>
+  <line x1="530" y1="704" x2="850" y2="704" stroke="#F0A24B" stroke-width="1"/>
+  <text x="532" y="730" font-size="13" fill="#3A2A18">• cache — balance / history</text>
+  <text x="532" y="755" font-size="13" fill="#3A2A18">• idempotency keys (SETNX)</text>
+  <text x="532" y="780" font-size="13" fill="#3A2A18">• rate-limit counters</text>
+  <text x="532" y="805" font-size="13" fill="#3A2A18">• pub/sub (events)</text>
+  <text x="532" y="838" font-size="12" font-style="italic" fill="#8A7A66">fail-fast · bounded pool</text>
+
+  <!-- BullMQ + Workers -->
+  <rect x="910" y="660" width="360" height="210" rx="12" fill="#FFFFFF" stroke="#E8821E" stroke-width="2.5"/>
+  <text x="1090" y="692" text-anchor="middle" font-size="17" font-weight="700" fill="#D9731A">BullMQ Queues → Workers</text>
+  <line x1="930" y1="704" x2="1250" y2="704" stroke="#F0A24B" stroke-width="1"/>
+  <text x="932" y="730" font-size="13" fill="#3A2A18">• async transaction settlement</text>
+  <text x="932" y="755" font-size="13" fill="#3A2A18">• email / OTP dispatch</text>
+  <text x="932" y="780" font-size="13" fill="#3A2A18">• retries + backoff</text>
+  <text x="932" y="838" font-size="12" font-style="italic" fill="#8A7A66">separate worker process</text>
+
+  <!-- Email provider -->
+  <rect x="1310" y="660" width="260" height="100" rx="12" fill="#FFEFD9" stroke="#E8821E" stroke-width="2"/>
+  <text x="1440" y="700" text-anchor="middle" font-size="15" font-weight="700" fill="#D9731A">Email Provider</text>
+  <text x="1440" y="725" text-anchor="middle" font-size="12.5" fill="#3A2A18">Resend / SMTP</text>
+  <text x="1440" y="744" text-anchor="middle" font-size="12.5" fill="#8A7A66">OTP &amp; alerts</text>
+
+  <!-- graceful shutdown note -->
+  <rect x="1310" y="780" width="260" height="90" rx="12" fill="#FDEBD0" stroke="#D9731A" stroke-width="2"/>
+  <text x="1440" y="812" text-anchor="middle" font-size="14" font-weight="700" fill="#D9731A">Reliability</text>
+  <text x="1440" y="834" text-anchor="middle" font-size="12" fill="#3A2A18">graceful shutdown</text>
+  <text x="1440" y="852" text-anchor="middle" font-size="12" fill="#3A2A18">connection-pool draining</text>
+
+  <!-- ===== arrows Backend -> data ===== -->
+  <line x1="300" y1="550" x2="300" y2="656" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="312" y="600" font-size="12" fill="#8A7A66">read/write (sessions)</text>
+
+  <line x1="650" y1="550" x2="680" y2="656" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="690" y="600" font-size="12" fill="#8A7A66">cache · SETNX</text>
+
+  <line x1="900" y1="528" x2="1050" y2="656" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="980" y="600" font-size="12" fill="#8A7A66">enqueue jobs</text>
+
+  <!-- worker -> email -->
+  <line x1="1270" y1="712" x2="1306" y2="712" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- AtomAI Motor -> Mongo -->
+  <line x1="1415" y1="520" x2="1415" y2="560" stroke="#E8821E" stroke-width="2.5"/>
+  <path d="M1415 560 Q1415 590 1090 590 L470 630 L420 655" fill="none" stroke="#E8821E" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="1000" y="582" text-anchor="middle" font-size="12" fill="#8A7A66">AtomAI reads ledger via Motor</text>
+
+  <!-- ===== Legend ===== -->
+  <rect x="60" y="945" width="1560" height="210" rx="14" fill="#FFFDFB" stroke="#F0A24B" stroke-width="1.5"/>
+  <text x="84" y="975" font-size="16" font-weight="700" fill="#D9731A">Key request flows</text>
+
+  <text x="84" y="1005" font-size="13.5" fill="#3A2A18"><tspan font-weight="700" fill="#D9731A">Money transfer:</tspan>  SPA → JWT auth → Zod validate → IP limit → Idempotency (Redis SETNX) → Transaction Controller → ACID multi-doc session (2-phase commit, double-check lock) →</text>
+  <text x="84" y="1027" font-size="13.5" fill="#3A2A18">MongoDB commit → invalidate Redis cache → enqueue notification job (BullMQ) → Worker sends email.</text>
+
+  <text x="84" y="1062" font-size="13.5" fill="#3A2A18"><tspan font-weight="700" fill="#D9731A">Balance read:</tspan>  SPA → JWT auth → Wallet Controller → Redis cache hit (fallback MongoDB on miss, then warm cache).</text>
+
+  <text x="84" y="1097" font-size="13.5" fill="#3A2A18"><tspan font-weight="700" fill="#D9731A">AtomAI chat:</tspan>  SPA → Node /api/agent/* (JWT proxy, injects userId) → FastAPI ReAct agent → tools query MongoDB via Motor →</text>
+  <text x="84" y="1119" font-size="13.5" fill="#3A2A18">LLM (Groq Llama 3.3 70B) composes answer → self-verification pass grounds every fact in tool data → response.</text>
+
+  <text x="840" y="1180" text-anchor="middle" font-size="12" fill="#B0A28C">AtomPay HLD · white/orange reference diagram</text>
+</svg>
