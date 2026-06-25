@@ -11,10 +11,17 @@ cp .env.example .env
 npm run dev
 ```
 
-The app expects the backend API at `VITE_API_BASE_URL`, which defaults to:
+The app expects the backend API at `VITE_API_BASE_URL`. The committed
+`.env.example` points local development at:
 
 ```text
 http://localhost:3000/api
+```
+
+If `VITE_API_BASE_URL` is not set, the app falls back to:
+
+```text
+https://api.atompay.co.in/api
 ```
 
 ## Main Screens

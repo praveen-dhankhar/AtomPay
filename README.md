@@ -248,6 +248,63 @@ Default local URLs:
 - Backend API: `http://localhost:3000/api`
 - AtomAI service: `http://localhost:8000`
 
+## Deployment
+
+### Vercel frontend
+
+Deploy the `frontend/` directory as the Vercel project root.
+
+Recommended settings:
+
+| Setting | Value |
+|---|---|
+| Framework Preset | Vite |
+| Root Directory | `frontend` |
+| Install Command | `npm ci` |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+Set this environment variable in Vercel:
+
+```env
+VITE_API_BASE_URL=https://api.atompay.co.in/api
+```
+
+If the variable is missing, the frontend falls back to the same production API
+URL above. For local development, `frontend/.env.example` points to
+`http://localhost:3000/api`.
+
+### Render backend
+
+Deploy the `backend/` directory as the Render web service root, or keep the repo
+root and use commands that `cd backend`.
+
+Recommended settings:
+
+| Setting | Value |
+|---|---|
+| Runtime | Node |
+| Root Directory | `backend` |
+| Build Command | `npm ci` |
+| Start Command | `npm start` |
+| Health Check Path | `/api` |
+
+Required Render environment variables:
+
+```env
+MONGO_URL=<mongodb connection string>
+REDIS_URL=<redis connection string>
+JWT_SECRET=<strong secret>
+OTP_SECRET=<strong secret>
+BREVO_API_KEY=<brevo api key>
+CORS_ORIGINS=https://<your-vercel-app>.vercel.app
+AGENT_URL=<atomai service url>
+MAINTENANCE_MODE=false
+```
+
+Run `npm run start:worker` as a separate Render background worker if you want
+transaction emails and audit-log jobs to be processed in production.
+
 ## Environment Variables
 
 ### Backend
@@ -268,7 +325,7 @@ Default local URLs:
 
 | Variable | Required | Description |
 |---|---:|---|
-| `VITE_API_BASE_URL` | No | Backend API base URL. Defaults to `http://localhost:3000/api`. |
+| `VITE_API_BASE_URL` | No | Backend API base URL. Defaults to `https://api.atompay.co.in/api`. |
 | `VITE_MAINTENANCE_MODE` | No | Set to `true` to show the maintenance page. |
 
 ### AtomAI
