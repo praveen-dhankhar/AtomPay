@@ -11,15 +11,13 @@ import Maintenance from "./pages/Maintenance";
 import SideNav from "./components/SideNav";
 
 export default function App() {
-  const [page, setPage] = useState("login");
   const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [page, setPage] = useState(token ? "dashboard" : "login");
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user") || "null"));
   const [transferData, setTransferData] = useState(null);
   const maintenance = import.meta.env.VITE_MAINTENANCE_MODE === "true";
 
   useEffect(() => {
-    if (token) setPage("dashboard");
-
     // Set up token refresh callback
     window.__onTokenRefresh = (newToken) => {
       setToken(newToken);
@@ -59,7 +57,7 @@ export default function App() {
           method: "POST",
           body: JSON.stringify({ refreshToken })
         }, currentToken);
-      } catch (e) {
+      } catch {
         // Ignore errors during logout
       }
     }

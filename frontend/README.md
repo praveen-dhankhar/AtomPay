@@ -1,16 +1,29 @@
-# React + Vite
+# AtomPay Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite client for AtomPay.
 
-Currently, two official plugins are available:
+## Local Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
 
-## React Compiler
+The app expects the backend API at `VITE_API_BASE_URL`, which defaults to:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```text
+http://localhost:3000/api
+```
 
-## Expanding the ESLint configuration
+## Main Screens
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `Dashboard.jsx` - wallet balance, QR code, recent activity, and daily limit.
+- `Transfer.jsx` - username/QR transfer flow with idempotency headers.
+- `Transactions.jsx` - wallet ledger and filters.
+- `AiChat.jsx` - AtomAI chat, analytics, tips, budget, and insights.
+- `Settings.jsx` - password/PIN changes and logout.
+
+Shared API behavior lives in `src/api.js`, including access-token refresh and
+custom request headers such as `Idempotency-Key`.

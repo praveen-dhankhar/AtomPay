@@ -207,7 +207,7 @@ export default function AiChat({ token, user, navigate }) {
 
       const assistantMsg = { role: "assistant", content: res.response, time: new Date() };
       setMessages(prev => [...prev, assistantMsg]);
-    } catch (err) {
+    } catch {
       const errorMsg = {
         role: "assistant",
         content: "⚠️ Sorry, I couldn't process your request. AtomAI might be offline. Please try again later.",

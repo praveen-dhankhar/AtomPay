@@ -1,5 +1,4 @@
-const BASE = "https://api.atompay.co.in/api";
-// const BASE = "http://localhost:3000/api";
+const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -13,18 +12,19 @@ const onRefreshed = (token) => {
   refreshSubscribers = [];
 };
 
-export const api = async (path, options = {}, token = null) => {
-  const headers = { "Content-Type": "application/json" };
+export const api = async (path, options = {}, token = null, customHeaders = {}) => {
+  const { headers: optionHeaders = {}, ...fetchOptions } = options;
+  const headers = { "Content-Type": "application/json", ...optionHeaders, ...customHeaders };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  let res = await fetch(`${BASE}${path}`, { ...options, headers });
+  let res = await fetch(`${BASE}${path}`, { ...fetchOptions, headers });
 
   // Handling 204 No Content or empty response body just in case
   let data;
   const text = await res.text();
   try {
     data = text ? JSON.parse(text) : {};
-  } catch (e) {
+  } catch {
     data = { msg: text };
   }
 
@@ -42,11 +42,11 @@ export const api = async (path, options = {}, token = null) => {
 
         if (newToken) {
           headers["Authorization"] = `Bearer ${newToken}`;
-          res = await fetch(`${BASE}${path}`, { ...options, headers });
+          res = await fetch(`${BASE}${path}`, { ...fetchOptions, headers });
           const retryText = await res.text();
           try {
             data = retryText ? JSON.parse(retryText) : {};
-          } catch (e) {
+          } catch {
             data = { msg: retryText };
           }
         } else {
@@ -66,7 +66,7 @@ export const api = async (path, options = {}, token = null) => {
           let refreshData;
           try {
             refreshData = refreshText ? JSON.parse(refreshText) : {};
-          } catch (e) {
+          } catch {
             refreshData = {};
           }
 
@@ -87,14 +87,14 @@ export const api = async (path, options = {}, token = null) => {
           // FIX: Retry the CURRENT request with the new token
           // (Previously this fell through without retrying for the initiating request)
           headers["Authorization"] = `Bearer ${newAccessToken}`;
-          res = await fetch(`${BASE}${path}`, { ...options, headers });
+          res = await fetch(`${BASE}${path}`, { ...fetchOptions, headers });
           const retryText = await res.text();
           try {
             data = retryText ? JSON.parse(retryText) : {};
-          } catch (e) {
+          } catch {
             data = { msg: retryText };
           }
-        } catch (err) {
+        } catch {
           isRefreshing = false;
           onRefreshed(null);
 

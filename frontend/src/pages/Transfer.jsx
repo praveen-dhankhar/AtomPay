@@ -57,7 +57,7 @@ export default function Transfer({ token, navigate, initialData }) {
         },
         () => {} // scan fail — ignore
       );
-    } catch (err) {
+    } catch {
       setError("Camera access denied — enter username manually");
       setShowScanner(false);
     }
@@ -68,7 +68,9 @@ export default function Transfer({ token, navigate, initialData }) {
       try {
         await scannerInstanceRef.current.stop();
         scannerInstanceRef.current.clear();
-      } catch {}
+      } catch {
+        // Scanner may already be stopped when the modal closes.
+      }
       scannerInstanceRef.current = null;
     }
   };
